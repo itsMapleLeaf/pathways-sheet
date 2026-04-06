@@ -181,7 +181,7 @@ export function App() {
 																		<button
 																			type="button"
 																			data-visible={dataValue > 0 || undefined}
-																			className="absolute right-0 self-center flex items-center justify-center rounded-full size-8 font-medium leading-none whitespace-nowrap transition hover:bg-white/10 opacity-0 data-visible:opacity-100 focus-visible-outline"
+																			className="absolute right-0 self-center flex items-center justify-center rounded-full size-8 font-medium leading-none whitespace-nowrap transition-all hover:bg-white/10 opacity-0 invisible data-visible:opacity-100 data-visible:visible focus-visible-outline"
 																			onClick={decrement}
 																		>
 																			<Icon
