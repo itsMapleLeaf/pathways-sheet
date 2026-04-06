@@ -12,7 +12,6 @@ import { twMerge } from "tailwind-merge"
 import { Combobox, Popover } from "@base-ui/react"
 import { Icon } from "@iconify/react"
 import { range, sum } from "es-toolkit"
-import type { JSX } from "react/jsx-runtime"
 
 const PATHS = ["Force", "Avoidance", "Alignment", "Direction"]
 
@@ -49,17 +48,51 @@ export function App() {
 		{ name: "Skills", stats: SKILLS },
 	]
 
+	function dataView(key: string) {
+		return {
+			value: data[key],
+			setValue: (newValue: string | number) => {
+				setData((data) => ({ ...data, [key]: newValue }))
+			},
+		}
+	}
+
+	function inputPropsForDataKey(key: string) {
+		const view = dataView(key)
+		return {
+			value: view.value,
+			onChange: (event: { currentTarget: { value: string } }) => {
+				view.setValue(event.currentTarget.value)
+			},
+		}
+	}
+
 	return (
 		<div className="grid gap-6 mx-auto max-w-screen-md px-4 py-12">
 			<section className="grid gap-3">
 				<div className="gap-3 grid grid-flow-col auto-cols-fr">
-					<InputField label="Name" placeholder="Artemis" />
-					<InputField label="Pronouns" placeholder="they/them" />
+					<InputField
+						label="Name"
+						placeholder="Artemis"
+						{...inputPropsForDataKey("name")}
+					/>
+					<InputField
+						label="Pronouns"
+						placeholder="they/them"
+						{...inputPropsForDataKey("pronouns")}
+					/>
 				</div>
 				<TextAreaField
 					label="Concept"
 					placeholder="An astronomical character!"
 					rows={3}
+					{...inputPropsForDataKey("concept")}
+				/>
+				<TextAreaField
+					label="Notes"
+					placeholder="Track other misc. info"
+					rows={3}
+					{...inputPropsForDataKey("notes")}
 				/>
 			</section>
 
@@ -134,30 +167,35 @@ export function App() {
 				<h2 className="text-2xl font-light mt-4">Experiences</h2>
 				<div className="grid gap-8">
 					{Array.from({ length: 5 }, (_, i) => i).map((experienceIndex) => (
-						<div key={experienceIndex} className="grid gap-3 grid-cols-2">
+						<div key={experienceIndex} className="grid gap-3 grid-cols-3">
 							<SelectField
 								label="Type"
 								options={["Origin", "Resource", "Setback", "Bond", "Loss"]}
-								className="col-span-full"
-							/>
-							<TextAreaField
-								label="Description"
-								placeholder="What happened in their life?"
-								rows={3}
-								className="col-span-full"
+								placeholder="Choose an experience type"
+								{...inputPropsForDataKey(`experiences:${experienceIndex}:type`)}
 							/>
 
 							{statBlocks.map((section) => {
-								const previewText = section.stats
+								const previewItems = section.stats
 									.map((stat) => {
 										const dataKey = `experiences:${experienceIndex}:stats:${stat}`
 										const dataValue = Number(data[dataKey]) || 0
-										return dataValue > 0 ? `${stat} ${dataValue}` : null
+										return dataValue > 0 ? (
+											<span className="rounded bg-white/10 leading-4 font-medium py-1 px-1.5 text-[15px]">
+												{stat} {dataValue}
+											</span>
+										) : null
 									})
 									.filter(Boolean)
-									.join(", ") || (
-									<span className="opacity-40">{`Choose ${section.name.toLowerCase()}...`}</span>
-								)
+
+								const previewText =
+									previewItems.length > 0 ? (
+										<span className="flex flex-wrap gap-1.5">
+											{previewItems}
+										</span>
+									) : (
+										<span className="opacity-40">{`Choose ${section.name.toLowerCase()}...`}</span>
+									)
 
 								return (
 									<StatBlockField
@@ -169,6 +207,16 @@ export function App() {
 									/>
 								)
 							})}
+
+							<TextAreaField
+								label="Description"
+								placeholder="What happened in their life?"
+								rows={3}
+								className="col-span-full"
+								{...inputPropsForDataKey(
+									`experiences:${experienceIndex}:description`,
+								)}
+							/>
 						</div>
 					))}
 				</div>
@@ -185,7 +233,7 @@ function StatBlockField({
 	setData,
 }: {
 	statBlock: StatBlock
-	previewText: string | JSX.Element
+	previewText: ReactNode
 	experienceIndex: number
 	data: Record<string, string | number>
 	setData: Dispatch<SetStateAction<Record<string, string | number>>>
@@ -193,8 +241,8 @@ function StatBlockField({
 	return (
 		<Field key={statBlock.name} label={statBlock.name}>
 			<Popover.Root>
-				<Popover.Trigger className="leading-6 h-10 py-2 text-start px-3 bg-white/5 border border-white/10 rounded transition hover:bg-white/10 focus-visible-outline">
-					<div className="flex items-center">
+				<Popover.Trigger className="leading-6 min-h-10 py-2 text-start px-3 bg-white/5 border border-white/10 rounded transition hover:bg-white/10 focus-visible-outline">
+					<div className="flex items-center gap-1.5">
 						<div className="flex-1">{previewText}</div>
 						<Icon icon="mingcute:edit-2-fill" className="opacity-50" />
 					</div>
@@ -370,12 +418,14 @@ function TextAreaField({ className, label, ...props }: TextAreaFieldProps) {
 interface SelectFieldProps extends ComponentProps<"select"> {
 	label: ReactNode
 	options: ReadonlyArray<string | { label: string; value: string }>
+	placeholder?: string
 }
 
 function SelectField({
 	className,
 	label,
 	options,
+	placeholder,
 	...props
 }: SelectFieldProps) {
 	const id = useId()
@@ -387,9 +437,15 @@ function SelectField({
 		>
 			<select
 				id={id}
-				className="bg-stone-900 border-white/10 focus:border-fuchsia-400/50 py-2 leading-6 px-3 rounded border transition-colors focus:outline-none placeholder-shown:text-white/40 field-sizing-content"
+				data-muted={!props.value || undefined}
+				className="bg-stone-900 border-white/10 focus:border-fuchsia-400/50 py-2 leading-6 px-3 rounded border transition-colors focus:outline-none placeholder-shown:text-white/40 field-sizing-content data-muted:text-white/40"
 				{...props}
 			>
+				{placeholder && (
+					<option value="" disabled>
+						{placeholder}
+					</option>
+				)}
 				{options
 					.map((it) => (typeof it === "string" ? { label: it, value: it } : it))
 					.map((opt) => (
