@@ -50,7 +50,8 @@ export function App() {
 	})
 
 	useEffect(() => {
-		window.localStorage.setItem(storageKey, JSON.stringify(data))
+		const saved: ExportedSheet = { data }
+		window.localStorage.setItem(storageKey, JSON.stringify(saved))
 	}, [data])
 
 	const statBlocks: StatBlock[] = [
@@ -241,7 +242,7 @@ export function App() {
 							<SelectField
 								label="Type"
 								options={["Origin", "Resource", "Setback", "Bond", "Loss"]}
-								placeholder="Choose an experience type"
+								placeholder="Choose a type"
 								{...inputPropsForDataKey(`experiences:${experienceIndex}:type`)}
 							/>
 
@@ -321,7 +322,7 @@ function StatBlockField({
 				<Popover.Portal>
 					<Popover.Backdrop />
 					<Popover.Positioner sideOffset={12} align="start">
-						<Popover.Popup className="bg-stone-900 border border-stone-800 rounded shadow-md shadow-black/50 transition data-starting-style:translate-y-1 data-ending-style:translate-y-1 data-starting-style:opacity-0 data-ending-style:opacity-0">
+						<Popover.Popup className="bg-stone-900 border border-stone-800 rounded shadow-md shadow-black/50 transition data-starting-style:translate-y-1 data-ending-style:translate-y-1 data-starting-style:opacity-0 data-ending-style:opacity-0 min-w-44">
 							<div className="flex flex-col gap-1 p-1">
 								{statBlock.stats.map((stat) => {
 									const dataKey = `experiences:${experienceIndex}:stats:${stat}`
@@ -357,7 +358,7 @@ function StatBlockField({
 											<button
 												type="button"
 												data-visible={dataValue > 0 || undefined}
-												className="absolute right-0 self-center flex items-center justify-center rounded-full size-8 font-medium leading-none whitespace-nowrap transition-all hover:bg-white/10 opacity-0 invisible data-visible:opacity-100 data-visible:visible focus-visible-outline"
+												className="absolute right-0 self-center flex items-center justify-center rounded-full size-8 font-medium leading-none whitespace-nowrap transition-all hover:bg-white/10 opacity-50 data-visible:opacity-100 focus-visible-outline"
 												onClick={decrement}
 											>
 												<Icon
@@ -425,7 +426,7 @@ function TagField({ className, label, placeholder, ...props }: TagFieldProps) {
 					<Combobox.Input
 						id={id}
 						type="text"
-						className="flex-1 min-w-32 focus:outline-none placeholder-shown:text-white/40"
+						className="flex-1 min-w-32 focus:outline-none"
 						placeholder={placeholder}
 					/>
 				</Combobox.InputGroup>
@@ -457,7 +458,7 @@ function InputField({ className, label, ...props }: InputFieldProps) {
 			<input
 				id={id}
 				type="text"
-				className="bg-white/5 border-white/10 leading-6 py-2 px-3 rounded border focus:bg-white/10 focus:border-fuchsia-400/50 transition-colors focus:outline-none placeholder-shown:text-white/40"
+				className="bg-white/5 border-white/10 leading-6 py-2 px-3 rounded border focus:bg-white/10 focus:border-fuchsia-400/50 transition-colors focus:outline-none"
 				{...props}
 			/>
 		</Field>
@@ -478,7 +479,7 @@ function TextAreaField({ className, label, ...props }: TextAreaFieldProps) {
 		>
 			<textarea
 				id={id}
-				className="bg-white/5 border-white/10 py-2 leading-6 px-3 rounded border focus:bg-white/10 focus:border-fuchsia-400/50 transition-colors focus:outline-none placeholder-shown:text-white/40 field-sizing-content"
+				className="bg-white/5 border-white/10 py-2 leading-6 px-3 rounded border focus:bg-white/10 focus:border-fuchsia-400/50 transition-colors focus:outline-none field-sizing-content"
 				{...props}
 			/>
 		</Field>
@@ -508,14 +509,10 @@ function SelectField({
 			<select
 				id={id}
 				data-muted={!props.value || undefined}
-				className="bg-stone-900 border-white/10 focus:border-fuchsia-400/50 py-2 leading-6 px-3 rounded border transition-colors focus:outline-none placeholder-shown:text-white/40 field-sizing-content data-muted:text-white/40"
+				className="bg-stone-900 border-white/10 focus:border-fuchsia-400/50 py-2 leading-6 px-3 rounded border transition-colors focus:outline-none field-sizing-content"
 				{...props}
 			>
-				{placeholder && (
-					<option value="" disabled>
-						{placeholder}
-					</option>
-				)}
+				{placeholder && <option value="">{placeholder}</option>}
 				{options
 					.map((it) => (typeof it === "string" ? { label: it, value: it } : it))
 					.map((opt) => (
