@@ -13,6 +13,7 @@
     "@fontsource-variable/lexend": "^5.2.11",
     "@iconify/react": "^6.0.2",
     "bun-plugin-tailwind": "^0.1.2",
+    "es-toolkit": "^1.45.1",
     "react": "^19",
     "react-dom": "^19",
     "tailwind-merge": "^3.5.0",

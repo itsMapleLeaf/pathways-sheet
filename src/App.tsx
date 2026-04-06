@@ -1,15 +1,53 @@
-import { useId, useState, type ComponentProps, type ReactNode } from "react"
+import {
+	useEffect,
+	useId,
+	useState,
+	type ComponentProps,
+	type Dispatch,
+	type ReactNode,
+	type SetStateAction,
+} from "react"
 import "./index.css"
 import { twMerge } from "tailwind-merge"
 import { Combobox, Popover } from "@base-ui/react"
 import { Icon } from "@iconify/react"
+import { range, sum } from "es-toolkit"
+import type { JSX } from "react/jsx-runtime"
 
 const PATHS = ["Force", "Avoidance", "Alignment", "Direction"]
 
 const SKILLS = ["Strength", "Agility", "Precision", "Logic", "Presence"]
 
+type StatBlock = { name: string; stats: string[] }
+
+type SheetData = Record<string, string | number>
+
+const storageKey = "sheetData"
+
 export function App() {
-	const [data, setData] = useState<Record<string, string | number>>({})
+	const [data, setData] = useState<SheetData>(() => {
+		if (typeof window === "undefined") return {}
+
+		try {
+			const loaded = window.localStorage.getItem(storageKey)
+			if (!loaded) return {}
+
+			const parsed = JSON.parse(loaded)
+			return parsed as SheetData
+		} catch (error) {
+			console.warn("failed to load sheet data :(")
+			return {}
+		}
+	})
+
+	useEffect(() => {
+		window.localStorage.setItem(storageKey, JSON.stringify(data))
+	}, [data])
+
+	const statBlocks: StatBlock[] = [
+		{ name: "Paths", stats: PATHS },
+		{ name: "Skills", stats: SKILLS },
+	]
 
 	return (
 		<div className="grid gap-6 mx-auto max-w-screen-md px-4 py-12">
@@ -25,37 +63,34 @@ export function App() {
 				/>
 			</section>
 
-			<section className="grid gap-2">
-				<h2 className="text-2xl font-light">Paths</h2>
-				<div className="grid grid-flow-col auto-cols-fr gap-3">
-					{PATHS.map((path, index) => (
-						<div
-							key={path}
-							className="bg-white/5 border border-white/10 p-3 gap-1.5 rounded flex flex-col items-center"
-						>
-							<div className="text-2xl/none font-bold">{index}</div>
-							<div className="text-sm/none font-medium">{path}</div>
-						</div>
-					))}
-				</div>
-			</section>
+			{statBlocks.map((block) => (
+				<section className="grid gap-2" key={block.name}>
+					<h2 className="text-2xl font-light">{block.name}</h2>
+					<dl className="grid grid-flow-col auto-cols-fr gap-3">
+						{block.stats.map((stat) => {
+							const statTotal = sum(
+								range(5).map((experienceIndex) => {
+									const dataKey = `experiences:${experienceIndex}:stats:${stat}`
+									const dataValue = Number(data[dataKey]) || 0
+									return dataValue
+								}),
+							)
 
-			<section className="grid gap-2">
-				<h2 className="text-2xl font-light">Skills</h2>
-				<div className="grid grid-flow-col auto-cols-fr gap-3">
-					{SKILLS.map((skill, index) => (
-						<div
-							key={skill}
-							className="bg-white/5 border border-white/10 p-3 gap-1.5 rounded flex flex-col items-center"
-						>
-							<div className="text-2xl/none font-bold">{index}</div>
-							<div className="text-sm/none font-medium">{skill}</div>
-						</div>
-					))}
-				</div>
-			</section>
+							return (
+								<div
+									key={stat}
+									className="bg-white/5 border border-white/10 p-3 gap-1.5 rounded flex flex-col items-center"
+								>
+									<dt className="text-2xl/none font-bold">{statTotal}</dt>
+									<dd className="text-sm/none font-medium">{stat}</dd>
+								</div>
+							)
+						})}
+					</dl>
+				</section>
+			))}
 
-			<div className="flex flex-row gap-3">
+			{/* <div className="flex flex-row gap-3">
 				<section className="flex flex-col gap-2 flex-1">
 					<h2 className="text-2xl font-light">Paths</h2>
 					<div className="grid gap-3 flex-1">
@@ -93,7 +128,7 @@ export function App() {
 						))}
 					</div>
 				</section>
-			</div>
+			</div> */}
 
 			<section className="grid gap-2">
 				<h2 className="text-2xl font-light mt-4">Experiences</h2>
@@ -112,12 +147,7 @@ export function App() {
 								className="col-span-full"
 							/>
 
-							{/* <TagField label="Paths" placeholder="Type a path..." /> */}
-
-							{[
-								{ name: "Paths", stats: PATHS },
-								{ name: "Skills", stats: SKILLS },
-							].map((section) => {
+							{statBlocks.map((section) => {
 								const previewText = section.stats
 									.map((stat) => {
 										const dataKey = `experiences:${experienceIndex}:stats:${stat}`
@@ -130,74 +160,13 @@ export function App() {
 								)
 
 								return (
-									<Field key={section.name} label={section.name}>
-										<Popover.Root>
-											<Popover.Trigger className="leading-6 h-10 py-2 text-start px-3 bg-white/5 border border-white/10 rounded transition hover:bg-white/10 focus-visible-outline">
-												<div className="flex items-center">
-													<div className="flex-1">{previewText}</div>
-													<Icon
-														icon="mingcute:edit-2-fill"
-														className="opacity-50"
-													/>
-												</div>
-											</Popover.Trigger>
-
-											<Popover.Portal>
-												<Popover.Backdrop />
-												<Popover.Positioner sideOffset={12} align="start">
-													<Popover.Popup className="bg-stone-900 border border-stone-800 rounded shadow-md shadow-black/50 transition data-starting-style:translate-y-1 data-ending-style:translate-y-1 data-starting-style:opacity-0 data-ending-style:opacity-0">
-														<div className="flex flex-col gap-1 p-1">
-															{section.stats.map((stat) => {
-																const dataKey = `experiences:${experienceIndex}:stats:${stat}`
-																const dataValue = Number(data[dataKey]) || 0
-
-																const increment = () => {
-																	setData((data) => {
-																		const current = Number(data[dataKey]) || 0
-																		return { ...data, [dataKey]: current + 1 }
-																	})
-																}
-
-																const decrement = () => {
-																	setData((data) => {
-																		const current = Number(data[dataKey]) || 0
-																		return {
-																			...data,
-																			[dataKey]: Math.max(0, current - 1),
-																		}
-																	})
-																}
-
-																return (
-																	<div key={stat} className="relative flex">
-																		<button
-																			type="button"
-																			className="h-10 px-3 pr-10 flex-1 text-start rounded transition hover:bg-white/10 focus-visible-outline"
-																			onClick={increment}
-																		>
-																			{stat}: {dataValue}
-																		</button>
-
-																		<button
-																			type="button"
-																			data-visible={dataValue > 0 || undefined}
-																			className="absolute right-0 self-center flex items-center justify-center rounded-full size-8 font-medium leading-none whitespace-nowrap transition-all hover:bg-white/10 opacity-0 invisible data-visible:opacity-100 data-visible:visible focus-visible-outline"
-																			onClick={decrement}
-																		>
-																			<Icon
-																				icon="mingcute:minimize-fill"
-																				className="size-4"
-																			/>
-																		</button>
-																	</div>
-																)
-															})}
-														</div>
-													</Popover.Popup>
-												</Popover.Positioner>
-											</Popover.Portal>
-										</Popover.Root>
-									</Field>
+									<StatBlockField
+										statBlock={section}
+										previewText={previewText}
+										experienceIndex={experienceIndex}
+										data={data}
+										setData={setData}
+									/>
 								)
 							})}
 						</div>
@@ -208,6 +177,88 @@ export function App() {
 	)
 }
 
+function StatBlockField({
+	statBlock,
+	previewText,
+	experienceIndex,
+	data,
+	setData,
+}: {
+	statBlock: StatBlock
+	previewText: string | JSX.Element
+	experienceIndex: number
+	data: Record<string, string | number>
+	setData: Dispatch<SetStateAction<Record<string, string | number>>>
+}) {
+	return (
+		<Field key={statBlock.name} label={statBlock.name}>
+			<Popover.Root>
+				<Popover.Trigger className="leading-6 h-10 py-2 text-start px-3 bg-white/5 border border-white/10 rounded transition hover:bg-white/10 focus-visible-outline">
+					<div className="flex items-center">
+						<div className="flex-1">{previewText}</div>
+						<Icon icon="mingcute:edit-2-fill" className="opacity-50" />
+					</div>
+				</Popover.Trigger>
+
+				<Popover.Portal>
+					<Popover.Backdrop />
+					<Popover.Positioner sideOffset={12} align="start">
+						<Popover.Popup className="bg-stone-900 border border-stone-800 rounded shadow-md shadow-black/50 transition data-starting-style:translate-y-1 data-ending-style:translate-y-1 data-starting-style:opacity-0 data-ending-style:opacity-0">
+							<div className="flex flex-col gap-1 p-1">
+								{statBlock.stats.map((stat) => {
+									const dataKey = `experiences:${experienceIndex}:stats:${stat}`
+									const dataValue = Number(data[dataKey]) || 0
+
+									const increment = () => {
+										setData((data) => {
+											const current = Number(data[dataKey]) || 0
+											return { ...data, [dataKey]: current + 1 }
+										})
+									}
+
+									const decrement = () => {
+										setData((data) => {
+											const current = Number(data[dataKey]) || 0
+											return {
+												...data,
+												[dataKey]: Math.max(0, current - 1),
+											}
+										})
+									}
+
+									return (
+										<div key={stat} className="relative flex">
+											<button
+												type="button"
+												className="h-10 px-3 pr-10 flex-1 text-start rounded transition hover:bg-white/10 focus-visible-outline"
+												onClick={increment}
+											>
+												{stat}: {dataValue}
+											</button>
+
+											<button
+												type="button"
+												data-visible={dataValue > 0 || undefined}
+												className="absolute right-0 self-center flex items-center justify-center rounded-full size-8 font-medium leading-none whitespace-nowrap transition-all hover:bg-white/10 opacity-0 invisible data-visible:opacity-100 data-visible:visible focus-visible-outline"
+												onClick={decrement}
+											>
+												<Icon
+													icon="mingcute:minimize-fill"
+													className="size-4"
+												/>
+											</button>
+										</div>
+									)
+								})}
+							</div>
+						</Popover.Popup>
+					</Popover.Positioner>
+				</Popover.Portal>
+			</Popover.Root>
+		</Field>
+	)
+}
+
 interface FieldProps extends ComponentProps<"div"> {
 	label: ReactNode
 }
@@ -215,7 +266,7 @@ interface FieldProps extends ComponentProps<"div"> {
 function Field({ className, label, id, children, ...props }: FieldProps) {
 	const Label = id ? "label" : "div"
 	return (
-		<div className={twMerge("flex flex-col gap-1", className)}>
+		<div className={twMerge("flex flex-col gap-1", className)} {...props}>
 			<Label htmlFor={id} className="text-sm font-medium">
 				{label}
 			</Label>
