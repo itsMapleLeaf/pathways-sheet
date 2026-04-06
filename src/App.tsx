@@ -12,6 +12,7 @@ import { twMerge } from "tailwind-merge"
 import { Combobox, Popover } from "@base-ui/react"
 import { Icon } from "@iconify/react"
 import { range, sum } from "es-toolkit"
+import { type } from "arktype"
 
 const PATHS = ["Force", "Avoidance", "Alignment", "Direction"]
 
@@ -23,6 +24,11 @@ type SheetData = Record<string, string | number>
 
 const storageKey = "sheetData"
 
+type ExportedSheet = typeof ExportedSheet.inferOut
+const ExportedSheet = type({
+	data: "Record<string, string | number>",
+})
+
 export function App() {
 	const [data, setData] = useState<SheetData>(() => {
 		if (typeof window === "undefined") return {}
@@ -31,10 +37,14 @@ export function App() {
 			const loaded = window.localStorage.getItem(storageKey)
 			if (!loaded) return {}
 
-			const parsed = JSON.parse(loaded)
-			return parsed as SheetData
+			const parsed = ExportedSheet(JSON.parse(loaded))
+			if (parsed instanceof type.errors) {
+				console.warn("failed to load sheet data", parsed.summary)
+				return {}
+			}
+			return parsed.data
 		} catch (error) {
-			console.warn("failed to load sheet data :(")
+			console.warn("failed to load sheet data", error)
 			return {}
 		}
 	})
@@ -67,8 +77,68 @@ export function App() {
 		}
 	}
 
+	function exportSheet() {
+		const exported: ExportedSheet = {
+			data,
+		}
+		const exportedJson = JSON.stringify(exported)
+
+		const file = new Blob([exportedJson], {
+			type: "application/json",
+		})
+
+		const name = String(data["name"] || "sheet").replaceAll(/[^a-z0-9-_]/gi, "")
+
+		const anchor = document.createElement("a")
+		anchor.href = URL.createObjectURL(file)
+		anchor.download = `${name}.json`
+		anchor.click()
+	}
+
+	function importSheet() {
+		const input = document.createElement("input")
+		input.type = "file"
+		input.accept = "application/json"
+
+		input.oninput = async () => {
+			const [file] = input.files ?? []
+			if (!file) return
+
+			try {
+				const parsed = type("string.json.parse")
+					.to(ExportedSheet)
+					.assert(await file.text())
+				setData(parsed.data)
+			} catch (error) {
+				alert(`failed to import: ${error}`)
+			}
+		}
+
+		input.click()
+	}
+
 	return (
 		<div className="grid gap-6 mx-auto max-w-screen-md px-4 py-12">
+			<div className="flex justify-end gap-2">
+				<button
+					type="button"
+					className="size-8 rounded flex items-center justify-center transition hover:bg-stone-800"
+					onClick={exportSheet}
+				>
+					<Icon icon="mingcute:save-2-fill" className="size-5" />
+					<span className="sr-only">Save</span>
+				</button>
+
+				<button
+					type="button"
+					className="size-8 rounded flex items-center justify-center transition hover:bg-stone-800"
+					onClick={importSheet}
+				>
+					<Icon icon="mingcute:folder-open-fill" className="size-5" />
+					<span className="sr-only">Load</span>
+				</button>
+			</div>
+
 			<section className="grid gap-3">
 				<div className="gap-3 grid grid-flow-col auto-cols-fr">
 					<InputField
