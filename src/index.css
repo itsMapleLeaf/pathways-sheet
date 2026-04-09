@@ -2,12 +2,12 @@
 @import "@fontsource-variable/lexend/index.css";
 
 @theme {
-  --default-font-family: 'Lexend Variable', var(--font-sans);
+	--default-font-family: "Lexend Variable", var(--font-sans);
 }
 
 @layer base {
 }
 
 @utility focus-visible-outline {
-  @apply outline-2 outline-transparent focus-visible:outline-fuchsia-400/50;
+	@apply outline-2 outline-transparent focus-visible:outline-fuchsia-400/50;
 }
