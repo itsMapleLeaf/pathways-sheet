@@ -121,24 +121,29 @@ export function App() {
 
 	return (
 		<div className="mx-auto grid max-w-screen-md gap-6 px-4 py-12">
-			<div className="flex justify-end gap-2">
-				<button
-					type="button"
-					className="flex size-8 items-center justify-center rounded transition hover:bg-stone-800"
-					onClick={exportSheet}
-				>
-					<Icon icon="mingcute:save-2-fill" className="size-5" />
-					<span className="sr-only">Save</span>
-				</button>
+			<div className="flex flex-wrap items-end">
+				<h1 className="flex-1 font-extralight text-3xl text-stone-100">
+					Pathways RPG
+				</h1>
 
-				<button
-					type="button"
-					className="flex size-8 items-center justify-center rounded transition hover:bg-stone-800"
-					onClick={importSheet}
-				>
-					<Icon icon="mingcute:folder-open-fill" className="size-5" />
-					<span className="sr-only">Load</span>
-				</button>
+				<div className="flex justify-end gap-2">
+					<button
+						type="button"
+						className="flex size-8 items-center justify-center rounded transition hover:bg-stone-800"
+						onClick={exportSheet}
+					>
+						<Icon icon="mingcute:save-2-fill" className="size-5" />
+						<span className="sr-only">Save</span>
+					</button>
+					<button
+						type="button"
+						className="flex size-8 items-center justify-center rounded transition hover:bg-stone-800"
+						onClick={importSheet}
+					>
+						<Icon icon="mingcute:folder-open-fill" className="size-5" />
+						<span className="sr-only">Load</span>
+					</button>
+				</div>
 			</div>
 
 			<section className="grid gap-3">
