@@ -162,17 +162,10 @@ export function App() {
 				</section>
 
 				<TextAreaField
-					label="Concept"
+					label="Concept / Notes"
 					placeholder="An astronomical character!"
 					rows={3}
 					{...inputPropsForDataKey("concept")}
-				/>
-
-				<TextAreaField
-					label="Notes"
-					placeholder="Track other misc. info"
-					rows={3}
-					{...inputPropsForDataKey("notes")}
 				/>
 			</section>
 
