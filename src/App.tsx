@@ -1,8 +1,14 @@
 import "./index.css"
 import { Icon } from "@iconify/react"
 import { type } from "arktype"
-import { range, sum } from "es-toolkit"
-import { SPECIES_LIST, SPECIES_MAP, STAT_BLOCKS } from "./constants.ts"
+import { sum } from "es-toolkit"
+import {
+	PATHS,
+	SKILLS,
+	SPECIES_LIST,
+	SPECIES_MAP,
+	STAT_BLOCKS,
+} from "./constants.ts"
 import { InputField, SelectField, TextAreaField } from "./Field.tsx"
 import { SheetData } from "./SheetData.ts"
 import { StatBlockField } from "./StatBlockField.tsx"
@@ -16,27 +22,27 @@ export function App() {
 	})
 
 	function dataView(key: string) {
-		return {
-			value: sheet.data[key],
-			setValue: (newValue: string | number) => {
-				setSheet((sheet) => ({
-					...sheet,
-					data: {
-						...sheet.data,
-						[key]: newValue,
-					},
-				}))
-			},
-		}
-	}
+		const value = sheet.data[key]
 
-	function inputPropsForDataKey(key: string) {
-		const view = dataView(key)
+		const setValue = (newValue: string | number) => {
+			setSheet((sheet) => ({
+				...sheet,
+				data: {
+					...sheet.data,
+					[key]: newValue,
+				},
+			}))
+		}
+
 		return {
-			value: view.value,
-			onChange: (event: { currentTarget: { value: string } }) => {
-				view.setValue(event.currentTarget.value)
-			},
+			value,
+			setValue,
+			bind: () => ({
+				value: value,
+				onChange: (event: { currentTarget: { value: string } }) => {
+					setValue(event.currentTarget.value)
+				},
+			}),
 		}
 	}
 
@@ -81,8 +87,26 @@ export function App() {
 		input.click()
 	}
 
-	const speciesView = dataView("species")
-	const speciesData = SPECIES_MAP.get(speciesView.value as string)
+	const sheetView = {
+		name: dataView("name"),
+		pronouns: dataView("pronouns"),
+		species: dataView("species"),
+		concept: dataView("concept"),
+		experiences: Array.from({ length: 5 })
+			.map((_, experienceIndex) => `experiences:${experienceIndex}`)
+			.map((key) => ({
+				type: dataView(`${key}:type`),
+				description: dataView(`${key}:description`),
+				stats: new Map(
+					[...PATHS, ...SKILLS].map((stat) => [
+						stat,
+						dataView(`${key}:stats:${stat}`),
+					]),
+				),
+			})),
+	}
+
+	const speciesData = SPECIES_MAP.get(sheetView.species.value as string)
 
 	return (
 		<div className="mx-auto grid max-w-screen-md gap-6 px-4 py-12">
@@ -116,12 +140,12 @@ export function App() {
 					<InputField
 						label="Name"
 						placeholder="Artemis"
-						{...inputPropsForDataKey("name")}
+						{...sheetView.name.bind()}
 					/>
 					<InputField
 						label="Pronouns"
 						placeholder="they/them"
-						{...inputPropsForDataKey("pronouns")}
+						{...sheetView.pronouns.bind()}
 					/>
 				</div>
 
@@ -130,7 +154,7 @@ export function App() {
 						label="Species"
 						options={SPECIES_LIST.map((species) => species.name)}
 						placeholder="Choose a species"
-						{...inputPropsForDataKey("species")}
+						{...sheetView.species.bind()}
 					/>
 
 					<div className="grid auto-cols-fr grid-flow-col">
@@ -165,7 +189,7 @@ export function App() {
 					label="Concept / Notes"
 					placeholder="An astronomical character!"
 					rows={3}
-					{...inputPropsForDataKey("concept")}
+					{...sheetView.concept.bind()}
 				/>
 			</section>
 
@@ -175,11 +199,10 @@ export function App() {
 					<dl className="grid auto-cols-fr grid-flow-col gap-3">
 						{block.stats.map((stat) => {
 							const statTotal = sum([
-								...range(5).map((experienceIndex) => {
-									const dataKey = `experiences:${experienceIndex}:stats:${stat}`
-									const dataValue = Number(sheet.data[dataKey]) || 0
-									return dataValue
-								}),
+								...sheetView.experiences.map(
+									(experienceView) =>
+										Number(experienceView.stats.get(stat)?.value) || 0,
+								),
 								speciesData?.statMap.get(stat) ?? 0,
 							])
 
@@ -200,20 +223,21 @@ export function App() {
 			<section className="grid gap-2">
 				<h2 className="mt-4 font-light text-2xl">Experiences</h2>
 				<div className="grid gap-8">
-					{Array.from({ length: 5 }, (_, i) => i).map((experienceIndex) => (
+					{sheetView.experiences.map((experienceView, experienceIndex) => (
 						<div key={experienceIndex} className="grid grid-cols-3 gap-3">
 							<SelectField
 								label="Type"
 								options={["Origin", "Resource", "Setback", "Bond", "Loss"]}
 								placeholder="Choose a type"
-								{...inputPropsForDataKey(`experiences:${experienceIndex}:type`)}
+								{...experienceView.type.bind()}
 							/>
 
 							{STAT_BLOCKS.map((section) => {
 								const previewItems = section.stats
 									.map((stat) => {
-										const dataKey = `experiences:${experienceIndex}:stats:${stat}`
-										const dataValue = Number(sheet.data[dataKey]) || 0
+										const dataValue =
+											Number(experienceView.stats.get(stat)?.value) || 0
+
 										return dataValue > 0 ? (
 											<span key={stat} className="badge">
 												{stat} {dataValue}
@@ -247,9 +271,7 @@ export function App() {
 								placeholder="What happened in their life?"
 								rows={3}
 								className="col-span-full"
-								{...inputPropsForDataKey(
-									`experiences:${experienceIndex}:description`,
-								)}
+								{...experienceView.description.bind()}
 							/>
 						</div>
 					))}

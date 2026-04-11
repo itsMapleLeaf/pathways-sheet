@@ -38,18 +38,27 @@ export function StatBlockField({
 									const value = Number(sheet.data[dataKey]) || 0
 
 									const onIncrement = () => {
-										onSheetChange((data) => {
-											const current = Number(data.data[dataKey]) || 0
-											return { ...data, [dataKey]: current + 1 }
+										onSheetChange((sheet) => {
+											const current = Number(sheet.data[dataKey]) || 0
+											return {
+												...sheet,
+												data: {
+													...sheet.data,
+													[dataKey]: current + 1,
+												},
+											}
 										})
 									}
 
 									const onDecrement = () => {
-										onSheetChange((data) => {
-											const current = Number(data.data[dataKey]) || 0
+										onSheetChange((sheet) => {
+											const current = Number(sheet.data[dataKey]) || 0
 											return {
-												...data,
-												[dataKey]: Math.max(0, current - 1),
+												...sheet,
+												data: {
+													...sheet.data,
+													[dataKey]: Math.max(0, current - 1),
+												},
 											}
 										})
 									}
