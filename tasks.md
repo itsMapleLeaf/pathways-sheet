@@ -1,11 +1,12 @@
 ## features
 
-- stat colors
 - tabs
+- stat colors
 - ruleset toggles
 
 ## polish
 
-- auto-save
-- mobile responsiveness
+- window unload alert on unsaved content
 - better select component
+- mobile responsiveness
+- auto-save
