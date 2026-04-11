@@ -211,7 +211,7 @@ export function App() {
 						<h2 className="font-light text-2xl">
 							{block.name}
 							{blockTotal !== block.requiredTotal &&
-								`(${blockTotal}/${block.requiredTotal})`}
+								` (${blockTotal}/${block.requiredTotal})`}
 						</h2>
 						<dl className="grid auto-cols-fr grid-flow-col gap-3">
 							{block.stats.map((stat) => {
