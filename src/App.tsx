@@ -1,4 +1,5 @@
 import "./index.css"
+import { Popover } from "@base-ui/react"
 import { Icon } from "@iconify/react"
 import { type } from "arktype"
 import { sum, sumBy } from "es-toolkit"
@@ -9,9 +10,8 @@ import {
 	SPECIES_MAP,
 	STAT_BLOCKS,
 } from "./constants.ts"
-import { InputField, SelectField, TextAreaField } from "./Field.tsx"
+import { Field, InputField, SelectField, TextAreaField } from "./Field.tsx"
 import { SheetData } from "./SheetData.ts"
-import { StatBlockField } from "./StatBlockField.tsx"
 import { useLocalStorage } from "./useLocalStorage.ts"
 
 export function App() {
@@ -205,7 +205,6 @@ export function App() {
 
 			{STAT_BLOCKS.map((block) => {
 				const blockTotal = sumBy(block.stats, getStatValue)
-
 				return (
 					<section className="grid gap-2" key={block.name}>
 						<h2 className="font-light text-2xl">
@@ -214,29 +213,30 @@ export function App() {
 								` (${blockTotal}/${block.requiredTotal})`}
 						</h2>
 						<dl className="grid auto-cols-fr grid-flow-col gap-3">
-							{block.stats.map((stat) => {
-								return (
-									<div
-										key={stat}
-										className="flex flex-col items-center gap-1.5 rounded border border-white/10 bg-white/5 p-3"
-									>
-										<dt className="font-bold text-2xl/none">
-											{getStatValue(stat)}
-										</dt>
-										<dd className="font-medium text-sm/none">{stat}</dd>
-									</div>
-								)
-							})}
+							{block.stats.map((stat) => (
+								<div
+									key={stat}
+									className="flex flex-col items-center gap-1.5 rounded border border-white/10 bg-white/5 p-3"
+								>
+									<dt className="font-bold text-2xl/none">
+										{getStatValue(stat)}
+									</dt>
+									<dd className="font-medium text-sm/none">{stat}</dd>
+								</div>
+							))}
 						</dl>
 					</section>
 				)
 			})}
 
 			<section className="grid gap-2">
-				<h2 className="mt-4 font-light text-2xl">Experiences</h2>
+				<h2 className="mb-2 font-light text-2xl">Experiences</h2>
 				<div className="grid gap-8">
 					{sheetView.experiences.map((experienceView, experienceIndex) => (
-						<div key={experienceIndex} className="grid grid-cols-3 gap-3">
+						<div
+							key={experienceIndex}
+							className="grid grid-cols-3 gap-x-2 gap-y-2 border-gray-800 not-first:border-t not-first:pt-8"
+						>
 							<SelectField
 								label="Type"
 								options={["Origin", "Resource", "Setback", "Bond", "Loss"]}
@@ -245,6 +245,11 @@ export function App() {
 							/>
 
 							{STAT_BLOCKS.map((section) => {
+								const experienceTotal = sumBy(
+									section.stats,
+									(stat) => Number(experienceView.stats.get(stat)?.value) || 0,
+								)
+
 								const previewItems = section.stats
 									.map((stat) => {
 										const dataValue =
@@ -259,23 +264,74 @@ export function App() {
 									.filter(Boolean)
 
 								return (
-									<StatBlockField
+									<Field
 										key={section.name}
-										statBlock={section}
-										requiredCount={section.requiredCountInExperiences}
-										previewText={
-											previewItems.length > 0 ? (
-												<span className="flex flex-wrap gap-1.5">
-													{previewItems}
-												</span>
-											) : (
-												<span className="opacity-40">{`Choose ${section.name.toLowerCase()}...`}</span>
-											)
-										}
-										experienceIndex={experienceIndex}
-										sheet={sheet}
-										onSheetChange={setSheet}
-									/>
+										label={`${section.name}${
+											experienceTotal === section.requiredCountInExperiences
+												? ""
+												: ` (${experienceTotal}/${section.requiredCountInExperiences})`
+										}`}
+									>
+										<Popover.Root>
+											<Popover.Trigger className="focus-visible-outline min-h-10 rounded border border-white/10 bg-white/5 p-2 text-start leading-6 transition hover:bg-white/10">
+												<div className="flex items-center gap-1.5">
+													<div className="flex flex-1 flex-wrap gap-1">
+														{previewItems}
+													</div>
+													<Icon
+														icon="mingcute:edit-2-fill"
+														className="opacity-50"
+													/>
+												</div>
+											</Popover.Trigger>
+
+											<Popover.Portal>
+												<Popover.Backdrop />
+												<Popover.Positioner sideOffset={12} align="start">
+													<Popover.Popup className="min-w-44 rounded border border-stone-800 bg-stone-900 shadow-black/50 shadow-md transition data-ending-style:translate-y-1 data-starting-style:translate-y-1 data-ending-style:opacity-0 data-starting-style:opacity-0">
+														<div className="flex flex-col gap-1 p-1">
+															{section.stats.map((stat) => {
+																const statView = experienceView.stats.get(stat)
+																const statValue = Number(statView?.value) || 0
+
+																const onIncrement = () => {
+																	statView?.setValue(statValue + 1)
+																}
+
+																const onDecrement = () => {
+																	statView?.setValue(statValue - 1)
+																}
+
+																return (
+																	<div key={stat} className="relative flex">
+																		<button
+																			type="button"
+																			className="focus-visible-outline h-10 flex-1 rounded px-3 pr-10 text-start transition hover:bg-white/10"
+																			onClick={onIncrement}
+																		>
+																			{stat}: {statValue}
+																		</button>
+
+																		<button
+																			type="button"
+																			data-visible={statValue > 0 || undefined}
+																			className="focus-visible-outline absolute right-0 flex size-8 items-center justify-center self-center whitespace-nowrap rounded-full font-medium leading-none opacity-50 transition-all hover:bg-white/10 data-visible:opacity-100"
+																			onClick={onDecrement}
+																		>
+																			<Icon
+																				icon="mingcute:minimize-fill"
+																				className="size-4"
+																			/>
+																		</button>
+																	</div>
+																)
+															})}
+														</div>
+													</Popover.Popup>
+												</Popover.Positioner>
+											</Popover.Portal>
+										</Popover.Root>
+									</Field>
 								)
 							})}
 
