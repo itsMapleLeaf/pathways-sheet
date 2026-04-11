@@ -1,5 +1,6 @@
-## features
+## UX improvements
 
+- counts on paths/skills
 - tabs
 - stat colors
 - ruleset toggles
@@ -10,3 +11,8 @@
 - better select component
 - mobile responsiveness
 - auto-save
+
+## internal
+
+- specific typed data view calls
+- safe data view access in StatBlockField
