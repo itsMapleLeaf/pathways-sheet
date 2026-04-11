@@ -1,4 +1,0 @@
-- [ ] species
-- [ ] ruleset toggles
-- [ ] auto-save
-- [ ] tabs
