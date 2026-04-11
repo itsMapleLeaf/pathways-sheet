@@ -1,6 +1,5 @@
 ## UX improvements
 
-- counts on paths/skills
 - tabs
 - stat colors
 - ruleset toggles
@@ -14,5 +13,6 @@
 
 ## internal
 
+- make save work in VS Browser extension
 - specific typed data view calls
 - safe data view access in StatBlockField

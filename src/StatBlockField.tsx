@@ -1,5 +1,6 @@
 import { Popover } from "@base-ui/react"
 import { Icon } from "@iconify/react"
+import { sumBy } from "es-toolkit"
 import type { Dispatch, ReactNode, SetStateAction } from "react"
 import type { StatBlock } from "./constants.ts"
 import { Field } from "./Field.tsx"
@@ -9,17 +10,29 @@ export function StatBlockField({
 	statBlock,
 	previewText,
 	experienceIndex,
+	requiredCount,
 	sheet,
 	onSheetChange,
 }: {
 	statBlock: StatBlock
 	previewText: ReactNode
 	experienceIndex: number
+	requiredCount: number
 	sheet: SheetData
 	onSheetChange: Dispatch<SetStateAction<SheetData>>
 }) {
+	const total = sumBy(statBlock.stats, (stat) => {
+		const dataKey = `experiences:${experienceIndex}:stats:${stat}`
+		const value = Number(sheet.data[dataKey]) || 0
+		return value
+	})
+
 	return (
-		<Field label={statBlock.name}>
+		<Field
+			label={`${statBlock.name}${
+				total === requiredCount ? "" : ` (${total}/${requiredCount})`
+			}`}
+		>
 			<Popover.Root>
 				<Popover.Trigger className="focus-visible-outline min-h-10 rounded border border-white/10 bg-white/5 px-3 py-2 text-start leading-6 transition hover:bg-white/10">
 					<div className="flex items-center gap-1.5">

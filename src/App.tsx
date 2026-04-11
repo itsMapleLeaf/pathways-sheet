@@ -1,7 +1,7 @@
 import "./index.css"
 import { Icon } from "@iconify/react"
 import { type } from "arktype"
-import { sum } from "es-toolkit"
+import { sum, sumBy } from "es-toolkit"
 import {
 	PATHS,
 	SKILLS,
@@ -108,6 +108,14 @@ export function App() {
 
 	const speciesData = SPECIES_MAP.get(sheetView.species.value as string)
 
+	const getStatValue = (stat: string) =>
+		sum([
+			...sheetView.experiences.map(
+				(experienceView) => Number(experienceView.stats.get(stat)?.value) || 0,
+			),
+			speciesData?.statMap.get(stat) ?? 0,
+		])
+
 	return (
 		<div className="mx-auto grid max-w-screen-md gap-6 px-4 py-12">
 			<div className="flex flex-wrap items-end">
@@ -193,32 +201,34 @@ export function App() {
 				/>
 			</section>
 
-			{STAT_BLOCKS.map((block) => (
-				<section className="grid gap-2" key={block.name}>
-					<h2 className="font-light text-2xl">{block.name}</h2>
-					<dl className="grid auto-cols-fr grid-flow-col gap-3">
-						{block.stats.map((stat) => {
-							const statTotal = sum([
-								...sheetView.experiences.map(
-									(experienceView) =>
-										Number(experienceView.stats.get(stat)?.value) || 0,
-								),
-								speciesData?.statMap.get(stat) ?? 0,
-							])
+			{STAT_BLOCKS.map((block) => {
+				const blockTotal = sumBy(block.stats, getStatValue)
 
-							return (
-								<div
-									key={stat}
-									className="flex flex-col items-center gap-1.5 rounded border border-white/10 bg-white/5 p-3"
-								>
-									<dt className="font-bold text-2xl/none">{statTotal}</dt>
-									<dd className="font-medium text-sm/none">{stat}</dd>
-								</div>
-							)
-						})}
-					</dl>
-				</section>
-			))}
+				return (
+					<section className="grid gap-2" key={block.name}>
+						<h2 className="font-light text-2xl">
+							{block.name}
+							{blockTotal !== block.requiredTotal &&
+								`(${blockTotal}/${block.requiredTotal})`}
+						</h2>
+						<dl className="grid auto-cols-fr grid-flow-col gap-3">
+							{block.stats.map((stat) => {
+								return (
+									<div
+										key={stat}
+										className="flex flex-col items-center gap-1.5 rounded border border-white/10 bg-white/5 p-3"
+									>
+										<dt className="font-bold text-2xl/none">
+											{getStatValue(stat)}
+										</dt>
+										<dd className="font-medium text-sm/none">{stat}</dd>
+									</div>
+								)
+							})}
+						</dl>
+					</section>
+				)
+			})}
 
 			<section className="grid gap-2">
 				<h2 className="mt-4 font-light text-2xl">Experiences</h2>
@@ -250,6 +260,7 @@ export function App() {
 									<StatBlockField
 										key={section.name}
 										statBlock={section}
+										requiredCount={section.requiredCountInExperiences}
 										previewText={
 											previewItems.length > 0 ? (
 												<span className="flex flex-wrap gap-1.5">

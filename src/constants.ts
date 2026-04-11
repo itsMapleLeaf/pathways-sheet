@@ -1,13 +1,43 @@
 import { startCase } from "es-toolkit"
 
 export const PATHS = ["Force", "Avoidance", "Alignment", "Direction"]
+export const PATHS_PER_EXPERIENCE = 3
 
 export const SKILLS = ["Strength", "Agility", "Precision", "Logic", "Presence"]
+export const SKILLS_PER_EXPERIENCE = 2
 
-export type StatBlock = { name: string; stats: string[] }
+export const EXPERIENCE_COUNT = 5
+
+export const SPECIES_PATH_COUNT = 3
+export const SPECIES_SKILL_COUNT = 2
+
+export const TOTAL_PATHS =
+	EXPERIENCE_COUNT * PATHS_PER_EXPERIENCE + SPECIES_PATH_COUNT
+
+export const TOTAL_SKILLS =
+	EXPERIENCE_COUNT * SKILLS_PER_EXPERIENCE + SPECIES_SKILL_COUNT
+
+export type StatBlock = {
+	name: string
+	stats: string[]
+	requiredCountInExperiences: number
+	requiredTotal: number
+}
+
 export const STAT_BLOCKS: StatBlock[] = [
-	{ name: "Paths", stats: PATHS },
-	{ name: "Skills", stats: SKILLS },
+	{
+		name: "Paths",
+		stats: PATHS,
+		requiredCountInExperiences: 3,
+		requiredTotal: EXPERIENCE_COUNT * PATHS_PER_EXPERIENCE + SPECIES_PATH_COUNT,
+	},
+	{
+		name: "Skills",
+		stats: SKILLS,
+		requiredCountInExperiences: 2,
+		requiredTotal:
+			EXPERIENCE_COUNT * SKILLS_PER_EXPERIENCE + SPECIES_SKILL_COUNT,
+	},
 ]
 
 export type SpeciesData = {
