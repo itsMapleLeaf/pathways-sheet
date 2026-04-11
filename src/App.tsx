@@ -47,6 +47,8 @@ export function App() {
 	}
 
 	function saveSheet() {
+		console.debug("exported sheet", sheet)
+
 		const exportedJson = JSON.stringify(sheet)
 
 		const file = new Blob([exportedJson], {

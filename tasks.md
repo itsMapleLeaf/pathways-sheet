@@ -13,6 +13,6 @@
 
 ## internal
 
-- make save work in VS Browser extension
+- make save work in VS Browser extension (just printing data in console for now)
 - specific typed data view calls
 - safe data view access in StatBlockField
