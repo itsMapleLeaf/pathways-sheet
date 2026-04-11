@@ -121,12 +121,21 @@ export function App() {
 						{...inputPropsForDataKey("pronouns")}
 					/>
 				</div>
+
+				<SelectField
+					label="Species"
+					options={["Aquatic", "Avian", "Cervid", "Feline"]}
+					placeholder="Choose a species"
+					{...inputPropsForDataKey("species")}
+				/>
+
 				<TextAreaField
 					label="Concept"
 					placeholder="An astronomical character!"
 					rows={3}
 					{...inputPropsForDataKey("concept")}
 				/>
+
 				<TextAreaField
 					label="Notes"
 					placeholder="Track other misc. info"
