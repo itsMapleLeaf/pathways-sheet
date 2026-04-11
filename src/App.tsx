@@ -2,7 +2,7 @@ import "./index.css"
 import { Icon } from "@iconify/react"
 import { type } from "arktype"
 import { range, sum } from "es-toolkit"
-import { STAT_BLOCKS } from "./constants.ts"
+import { SPECIES_LIST, SPECIES_MAP, STAT_BLOCKS } from "./constants.ts"
 import { InputField, SelectField, TextAreaField } from "./Field.tsx"
 import { SheetData } from "./SheetData.ts"
 import { StatBlockField } from "./StatBlockField.tsx"
@@ -40,7 +40,7 @@ export function App() {
 		}
 	}
 
-	function exportSheet() {
+	function saveSheet() {
 		const exportedJson = JSON.stringify(sheet)
 
 		const file = new Blob([exportedJson], {
@@ -59,7 +59,7 @@ export function App() {
 		anchor.click()
 	}
 
-	function importSheet() {
+	function loadSheet() {
 		const input = document.createElement("input")
 		input.type = "file"
 		input.accept = "application/json"
@@ -81,6 +81,9 @@ export function App() {
 		input.click()
 	}
 
+	const speciesView = dataView("species")
+	const speciesData = SPECIES_MAP.get(speciesView.value as string)
+
 	return (
 		<div className="mx-auto grid max-w-screen-md gap-6 px-4 py-12">
 			<div className="flex flex-wrap items-end">
@@ -92,7 +95,7 @@ export function App() {
 					<button
 						type="button"
 						className="flex size-8 items-center justify-center rounded transition hover:bg-stone-800"
-						onClick={exportSheet}
+						onClick={saveSheet}
 					>
 						<Icon icon="mingcute:save-2-fill" className="size-5" />
 						<span className="sr-only">Save</span>
@@ -100,7 +103,7 @@ export function App() {
 					<button
 						type="button"
 						className="flex size-8 items-center justify-center rounded transition hover:bg-stone-800"
-						onClick={importSheet}
+						onClick={loadSheet}
 					>
 						<Icon icon="mingcute:folder-open-fill" className="size-5" />
 						<span className="sr-only">Load</span>
@@ -108,7 +111,7 @@ export function App() {
 				</div>
 			</div>
 
-			<section className="grid gap-3">
+			<section className="grid gap-4">
 				<div className="grid auto-cols-fr grid-flow-col gap-3">
 					<InputField
 						label="Name"
@@ -122,12 +125,41 @@ export function App() {
 					/>
 				</div>
 
-				<SelectField
-					label="Species"
-					options={["Aquatic", "Avian", "Cervid", "Feline"]}
-					placeholder="Choose a species"
-					{...inputPropsForDataKey("species")}
-				/>
+				<section className="flex flex-col gap-2">
+					<SelectField
+						label="Species"
+						options={SPECIES_LIST.map((species) => species.name)}
+						placeholder="Choose a species"
+						{...inputPropsForDataKey("species")}
+					/>
+
+					<div className="grid auto-cols-fr grid-flow-col">
+						{STAT_BLOCKS.map((block) => {
+							const statEntries = block.stats
+								.map((stat) => {
+									const value = speciesData?.statMap.get(stat) ?? 0
+									return [stat, value] as const
+								})
+								.filter(([, value]) => value != 0)
+
+							if (statEntries.length < 1) return
+
+							return (
+								<div key={block.name} className="flex flex-col gap-1">
+									<h2 className="font-medium text-sm/5">{block.name}</h2>
+									<div className="flex flex-wrap gap-1">
+										{statEntries.map(([stat, value]) => (
+											<p
+												key={stat}
+												className="badge border border-gray-700"
+											>{`${stat} ${value}`}</p>
+										))}
+									</div>
+								</div>
+							)
+						})}
+					</div>
+				</section>
 
 				<TextAreaField
 					label="Concept"
@@ -149,13 +181,14 @@ export function App() {
 					<h2 className="font-light text-2xl">{block.name}</h2>
 					<dl className="grid auto-cols-fr grid-flow-col gap-3">
 						{block.stats.map((stat) => {
-							const statTotal = sum(
-								range(5).map((experienceIndex) => {
+							const statTotal = sum([
+								...range(5).map((experienceIndex) => {
 									const dataKey = `experiences:${experienceIndex}:stats:${stat}`
 									const dataValue = Number(sheet.data[dataKey]) || 0
 									return dataValue
 								}),
-							)
+								speciesData?.statMap.get(stat) ?? 0,
+							])
 
 							return (
 								<div
@@ -189,10 +222,7 @@ export function App() {
 										const dataKey = `experiences:${experienceIndex}:stats:${stat}`
 										const dataValue = Number(sheet.data[dataKey]) || 0
 										return dataValue > 0 ? (
-											<span
-												key={stat}
-												className="rounded bg-white/10 px-1.5 py-1 font-medium text-[15px] leading-4"
-											>
+											<span key={stat} className="badge">
 												{stat} {dataValue}
 											</span>
 										) : null
