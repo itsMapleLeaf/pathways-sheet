@@ -2,6 +2,48 @@ import { startCase } from "es-toolkit"
 
 const EXPERIENCE_COUNT = 5
 
+type ExperienceType = {
+	name: string
+	prompts: Record<string, string> // a prompt for each stat block, to help the player define which stats apply
+}
+export const EXPERIENCE_TYPES: ExperienceType[] = [
+	{
+		name: "Environment",
+		prompts: {
+			Paths: "How did you act in this environment?",
+			Skills: "Which skills were improved?",
+		},
+	},
+	{
+		name: "Resource",
+		prompts: {
+			Paths: "Which paths did you take to acquire this?",
+			Skills: "Which skills did this resource improve?",
+		},
+	},
+	{
+		name: "Setback",
+		prompts: {
+			Paths: "How did you react to this setback?",
+			Skills: "Which skills did you rely on?",
+		},
+	},
+	{
+		name: "Bond",
+		prompts: {
+			Paths: "How did you act towards them?",
+			Skills: "Which skills did they teach you?",
+		},
+	},
+	{
+		name: "Loss",
+		prompts: {
+			Paths: "How did this loss make you act?",
+			Skills: "Which skills did you rely on?",
+		},
+	},
+]
+
 const PATHS_PER_EXPERIENCE = 3
 const SKILLS_PER_EXPERIENCE = 2
 

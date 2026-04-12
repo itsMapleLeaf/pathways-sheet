@@ -5,6 +5,7 @@ import { type } from "arktype"
 import { sum, sumBy } from "es-toolkit"
 import { twMerge } from "tailwind-merge"
 import {
+	EXPERIENCE_TYPES,
 	SPECIES_LIST,
 	SPECIES_MAP,
 	STAT_BLOCKS,
@@ -301,23 +302,12 @@ export function App() {
 }
 
 function ExperienceRow({ experienceView }: { experienceView: ExperienceView }) {
+	const experienceTypePrompts = EXPERIENCE_TYPES.find(
+		(type) => type.name === experienceView.type.value,
+	)?.prompts
+
 	return (
-		<div className="grid grid-cols-3 gap-x-2 gap-y-2 border-gray-800 not-first:border-t not-first:pt-8">
-			<SelectField
-				label="Type"
-				options={["Origin", "Resource", "Setback", "Bond", "Loss"]}
-				placeholder="Choose a type"
-				{...experienceView.type.bind()}
-			/>
-
-			{STAT_BLOCKS.map((section) => (
-				<ExperienceStatField
-					key={section.name}
-					section={section}
-					experienceView={experienceView}
-				/>
-			))}
-
+		<div className="flex flex-col gap-2 border-gray-800 not-first:border-t not-first:pt-8">
 			<TextAreaField
 				label="Description"
 				placeholder="What happened in their life?"
@@ -325,6 +315,28 @@ function ExperienceRow({ experienceView }: { experienceView: ExperienceView }) {
 				className="col-span-full"
 				{...experienceView.description.bind()}
 			/>
+
+			<SelectField
+				label="Type"
+				options={EXPERIENCE_TYPES.map((type) => type.name)}
+				placeholder="Choose a type"
+				{...experienceView.type.bind()}
+			/>
+
+			<div className="flex gap-2 *:flex-1">
+				{STAT_BLOCKS.map((section) => {
+					const prompt = experienceTypePrompts?.[section.name]
+					return (
+						<div key={section.name} className="flex flex-col gap-1">
+							<ExperienceStatField
+								section={section}
+								experienceView={experienceView}
+							/>
+							{prompt && <p className="text-gray-400 italic">{prompt}</p>}
+						</div>
+					)
+				})}
+			</div>
 		</div>
 	)
 }
