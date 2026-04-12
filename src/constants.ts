@@ -39,7 +39,7 @@ export const EXPERIENCE_TYPES: ExperienceType[] = [
 		name: "Loss",
 		prompts: {
 			Paths: "How did this loss make you act?",
-			Skills: "Which skills did you use to cope with this loss?",
+			Skills: "Which skills did this loss strengthen?",
 		},
 	},
 ]
