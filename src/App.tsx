@@ -4,6 +4,7 @@ import { Icon } from "@iconify/react"
 import { type } from "arktype"
 import { SheetData } from "./SheetData.ts"
 import { SheetEditor } from "./SheetEditor.tsx"
+import { Tooltip } from "./ui/Tooltip.tsx"
 import { useLocalStorage } from "./useLocalStorage.ts"
 
 const fallbackSheetId = crypto.randomUUID()
@@ -89,22 +90,26 @@ export function App() {
 				</h1>
 
 				<div className="flex justify-end gap-2">
-					<button
-						type="button"
-						className="flex size-8 items-center justify-center rounded transition hover:bg-stone-800"
-						onClick={saveSheet}
-					>
-						<Icon icon="mingcute:save-2-fill" className="size-5" />
-						<span className="sr-only">Save</span>
-					</button>
-					<button
-						type="button"
-						className="flex size-8 items-center justify-center rounded transition hover:bg-stone-800"
-						onClick={loadSheet}
-					>
-						<Icon icon="mingcute:folder-open-fill" className="size-5" />
-						<span className="sr-only">Load</span>
-					</button>
+					<Tooltip content="Save current sheet as JSON file" side="bottom">
+						<button
+							type="button"
+							className="flex size-8 items-center justify-center rounded transition hover:bg-stone-800"
+							onClick={saveSheet}
+						>
+							<Icon icon="mingcute:save-2-fill" className="size-5" />
+							<span className="sr-only">Save</span>
+						</button>
+					</Tooltip>
+					<Tooltip content="Load sheet from JSON file" side="bottom">
+						<button
+							type="button"
+							className="flex size-8 items-center justify-center rounded transition hover:bg-stone-800"
+							onClick={loadSheet}
+						>
+							<Icon icon="mingcute:folder-open-fill" className="size-5" />
+							<span className="sr-only">Load</span>
+						</button>
+					</Tooltip>
 				</div>
 			</div>
 
