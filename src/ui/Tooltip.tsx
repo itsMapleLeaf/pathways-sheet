@@ -14,7 +14,7 @@ export function TooltipTrigger(props: BaseTooltip.Trigger.Props) {
 	return <BaseTooltip.Trigger {...props} />
 }
 
-export interface TooltipContentProps
+export interface TooltipPanelProps
 	extends
 		BaseTooltip.Popup.Props,
 		Pick<
@@ -22,14 +22,14 @@ export interface TooltipContentProps
 			"side" | "sideOffset" | "align" | "alignOffset"
 		> {}
 
-export function TooltipContent({
+export function TooltipPanel({
 	side,
 	sideOffset = 8,
 	align,
 	alignOffset,
 	className,
 	...props
-}: TooltipContentProps) {
+}: TooltipPanelProps) {
 	return (
 		<BaseTooltip.Portal>
 			<BaseTooltip.Positioner
@@ -50,8 +50,10 @@ export function TooltipContent({
 	)
 }
 
-export interface TooltipProps extends Except<TooltipContentProps, "content"> {
+export interface TooltipProps extends Except<TooltipPanelProps, "content"> {
 	content: React.ReactNode
+	open?: boolean
+	onOpenChange?: (open: boolean) => void
 }
 
 /**
@@ -62,11 +64,16 @@ export interface TooltipProps extends Except<TooltipContentProps, "content"> {
  *   <button>Hover me</button>
  * </Tooltip>
  */
-export function Tooltip({ content, ...props }: TooltipProps) {
+export function Tooltip({
+	content,
+	open,
+	onOpenChange,
+	...props
+}: TooltipProps) {
 	return (
-		<TooltipRoot>
+		<TooltipRoot open={open} onOpenChange={onOpenChange}>
 			<TooltipTrigger>{props.children}</TooltipTrigger>
-			<TooltipContent {...props}>{content}</TooltipContent>
+			<TooltipPanel {...props}>{content}</TooltipPanel>
 		</TooltipRoot>
 	)
 }

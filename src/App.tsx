@@ -2,6 +2,7 @@ import "./index.css"
 import { Tabs } from "@base-ui/react"
 import { Icon } from "@iconify/react"
 import { type } from "arktype"
+import { useEffect, useState } from "react"
 import { SheetData } from "./SheetData.ts"
 import { SheetEditor } from "./SheetEditor.tsx"
 import { Tooltip } from "./ui/Tooltip.tsx"
@@ -31,13 +32,27 @@ export function App() {
 
 	const currentSheet = currentSheetId && sheets[currentSheetId]
 
-	function saveSheet() {
-		const sheet = currentSheet
-		if (!sheet) {
-			alert("no sheet to save")
-			return
-		}
+	useEffect(() => {
+		const params = new URLSearchParams(window.location.search)
+		const data = params.get("data")
+		if (!data) return
 
+		try {
+			const parsed = type("string.json.parse")
+				.to(SheetData)
+				.assert(decodeURIComponent(data))
+
+			const id = crypto.randomUUID()
+			setSheets((prev) => ({ ...prev, [id]: { ...parsed, id } }))
+			setSelectedSheetId(id)
+			window.history.replaceState({}, document.title, window.location.pathname)
+		} catch (error) {
+			alert(`Failed to load sheet from URL: ${error}`)
+			console.error("Failed to load sheet from URL", { error, data })
+		}
+	}, [setSheets, setSelectedSheetId])
+
+	function saveSheet(sheet: SheetData) {
 		console.debug("exported sheet", sheet)
 
 		const exportedJson = JSON.stringify(sheet)
@@ -76,10 +91,17 @@ export function App() {
 				setSelectedSheetId(id)
 			} catch (error) {
 				alert(`failed to import: ${error}`)
+				console.error("failed to import sheet", { error })
 			}
 		}
 
 		input.click()
+	}
+
+	function getSheetLink(sheet: SheetData) {
+		const json = JSON.stringify(sheet)
+		const encoded = encodeURIComponent(json)
+		return `${window.location.origin}${window.location.pathname}?data=${encoded}`
 	}
 
 	return (
@@ -90,16 +112,26 @@ export function App() {
 				</h1>
 
 				<div className="flex justify-end gap-2">
-					<Tooltip content="Save current sheet as JSON file" side="bottom">
-						<button
-							type="button"
-							className="flex size-8 items-center justify-center rounded transition hover:bg-stone-800"
-							onClick={saveSheet}
-						>
-							<Icon icon="mingcute:save-2-fill" className="size-5" />
-							<span className="sr-only">Save</span>
-						</button>
-					</Tooltip>
+					{currentSheet && (
+						<>
+							<CopyButton
+								tooltip="Copy sheet link to clipboard"
+								content={getSheetLink(currentSheet)}
+							/>
+
+							<Tooltip content="Save current sheet as JSON file" side="bottom">
+								<button
+									type="button"
+									className="flex size-8 items-center justify-center rounded transition hover:bg-stone-800"
+									onClick={() => saveSheet(currentSheet)}
+								>
+									<Icon icon="mingcute:save-2-fill" className="size-5" />
+									<span className="sr-only">Save</span>
+								</button>
+							</Tooltip>
+						</>
+					)}
+
 					<Tooltip content="Load sheet from JSON file" side="bottom">
 						<button
 							type="button"
@@ -189,5 +221,53 @@ export function App() {
 				))}
 			</Tabs.Root>
 		</div>
+	)
+}
+
+function CopyButton({
+	tooltip,
+	content,
+}: {
+	tooltip: React.ReactNode
+	content: string
+}) {
+	const [copied, setCopied] = useState(false)
+	const [tooltipOpen, setTooltipOpen] = useState(false)
+
+	async function copy() {
+		if (copied) return
+
+		try {
+			await navigator.clipboard.writeText(content)
+			setCopied(true)
+			setTooltipOpen(true)
+			setTimeout(() => {
+				setCopied(false)
+				setTooltipOpen(false)
+			}, 1000)
+		} catch (error) {
+			alert(`Failed to copy: ${error}`)
+		}
+	}
+
+	return (
+		<Tooltip
+			content={copied ? "Copied!" : tooltip}
+			side="bottom"
+			open={tooltipOpen || copied}
+			onOpenChange={setTooltipOpen}
+		>
+			<button
+				type="button"
+				className="flex size-8 items-center justify-center rounded transition hover:bg-stone-800"
+				onClick={copy}
+			>
+				<Icon
+					icon={copied ? "mingcute:check-fill" : "mingcute:link-fill"}
+					className="size-5"
+				/>
+				<span className="sr-only">Copy Link</span>
+			</button>
+		</Tooltip>
 	)
 }
