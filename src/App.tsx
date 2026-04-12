@@ -133,7 +133,10 @@ export function App() {
 						</>
 					)}
 
-					<Tooltip content="Load sheet from JSON file" side="bottom">
+					<Tooltip
+						content="Load sheet from JSON file (adds a new tab)"
+						side="bottom"
+					>
 						<button
 							type="button"
 							className="flex size-8 items-center justify-center rounded transition hover:bg-stone-800"
