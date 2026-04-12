@@ -1,4 +1,3 @@
-import type React from "react"
 import { STAT_NAMES } from "./constants.ts"
 import type { SheetData } from "./SheetData.ts"
 
@@ -8,13 +7,13 @@ export type ExperienceView = SheetView["experiences"][number]
 
 export function createSheetView(
 	sheet: SheetData,
-	setSheet: React.Dispatch<React.SetStateAction<SheetData>>,
+	updateSheet: (updater: (sheet: SheetData) => SheetData) => void,
 ) {
 	function stringView(key: string) {
 		const value = String(sheet.data[key] ?? "")
 
 		const setValue = (newValue: string) => {
-			setSheet((sheet) => ({
+			updateSheet((sheet) => ({
 				...sheet,
 				data: {
 					...sheet.data,
@@ -39,7 +38,7 @@ export function createSheetView(
 		const value = Number(sheet.data[key]) || 0
 
 		const setValue = (newValue: number) => {
-			setSheet((sheet) => ({
+			updateSheet((sheet) => ({
 				...sheet,
 				data: {
 					...sheet.data,

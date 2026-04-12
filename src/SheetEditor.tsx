@@ -26,12 +26,12 @@ const statStyles: Record<string, string> = {
 
 export function SheetEditor({
 	sheet,
-	setSheet,
+	updateSheet,
 }: {
 	sheet: SheetData
-	setSheet: React.Dispatch<React.SetStateAction<SheetData>>
+	updateSheet: (updater: (sheet: SheetData) => SheetData) => void
 }) {
-	const sheetView = createSheetView(sheet, setSheet)
+	const sheetView = createSheetView(sheet, updateSheet)
 	const speciesData = SPECIES_MAP.get(sheetView.species.value as string)
 
 	const getStatValue = (stat: string) =>
