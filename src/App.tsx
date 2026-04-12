@@ -14,17 +14,18 @@ import { Field, InputField, SelectField, TextAreaField } from "./Field.tsx"
 import { SheetData } from "./SheetData.ts"
 import { useLocalStorage } from "./useLocalStorage.ts"
 
-export function App() {
-	const [sheet, setSheet] = useLocalStorage({
-		key: "sheetData",
-		fallback: { data: {} },
-		schema: SheetData,
-	})
+type SheetView = ReturnType<typeof createSheetView>
 
-	function dataView(key: string) {
-		const value = sheet.data[key]
+type ExperienceView = SheetView["experiences"][number]
 
-		const setValue = (newValue: string | number) => {
+function createSheetView(
+	sheet: SheetData,
+	setSheet: (updater: (sheet: SheetData) => SheetData) => void,
+) {
+	function stringView(key: string) {
+		const value = String(sheet.data[key] ?? "")
+
+		const setValue = (newValue: string) => {
 			setSheet((sheet) => ({
 				...sheet,
 				data: {
@@ -38,13 +39,72 @@ export function App() {
 			value,
 			setValue,
 			bind: () => ({
-				value: value,
+				value,
 				onChange: (event: { currentTarget: { value: string } }) => {
 					setValue(event.currentTarget.value)
 				},
 			}),
 		}
 	}
+
+	function numberView(key: string) {
+		const value = Number(sheet.data[key]) || 0
+
+		const setValue = (newValue: number) => {
+			setSheet((sheet) => ({
+				...sheet,
+				data: {
+					...sheet.data,
+					[key]: newValue,
+				},
+			}))
+		}
+
+		return {
+			value,
+			setValue,
+			bind: () => ({
+				value,
+				onChange: (event: { currentTarget: { valueAsNumber: number } }) => {
+					const parsed = event.currentTarget.valueAsNumber
+					if (!isNaN(parsed)) {
+						setValue(parsed)
+					}
+				},
+			}),
+		}
+	}
+
+	const sheetView = {
+		name: stringView("name"),
+		pronouns: stringView("pronouns"),
+		species: stringView("species"),
+		concept: stringView("concept"),
+		experiences: Array.from({ length: 5 })
+			.map((_, experienceIndex) => `experiences:${experienceIndex}`)
+			.map((key) => ({
+				type: stringView(`${key}:type`),
+				description: stringView(`${key}:description`),
+				stats: new Map(
+					[...PATHS, ...SKILLS].map((stat) => [
+						stat,
+						numberView(`${key}:stats:${stat}`),
+					]),
+				),
+			})),
+	}
+
+	return sheetView
+}
+
+export function App() {
+	const [sheet, setSheet] = useLocalStorage({
+		key: "sheetData",
+		fallback: { data: {} },
+		schema: SheetData,
+	})
+
+	const sheetView = createSheetView(sheet, setSheet)
 
 	function saveSheet() {
 		console.debug("exported sheet", sheet)
@@ -87,25 +147,6 @@ export function App() {
 		}
 
 		input.click()
-	}
-
-	const sheetView = {
-		name: dataView("name"),
-		pronouns: dataView("pronouns"),
-		species: dataView("species"),
-		concept: dataView("concept"),
-		experiences: Array.from({ length: 5 })
-			.map((_, experienceIndex) => `experiences:${experienceIndex}`)
-			.map((key) => ({
-				type: dataView(`${key}:type`),
-				description: dataView(`${key}:description`),
-				stats: new Map(
-					[...PATHS, ...SKILLS].map((stat) => [
-						stat,
-						dataView(`${key}:stats:${stat}`),
-					]),
-				),
-			})),
 	}
 
 	const speciesData = SPECIES_MAP.get(sheetView.species.value as string)
@@ -233,119 +274,132 @@ export function App() {
 				<h2 className="mb-2 font-light text-2xl">Experiences</h2>
 				<div className="grid gap-8">
 					{sheetView.experiences.map((experienceView, experienceIndex) => (
-						<div
+						<ExperienceRow
 							key={experienceIndex}
-							className="grid grid-cols-3 gap-x-2 gap-y-2 border-gray-800 not-first:border-t not-first:pt-8"
-						>
-							<SelectField
-								label="Type"
-								options={["Origin", "Resource", "Setback", "Bond", "Loss"]}
-								placeholder="Choose a type"
-								{...experienceView.type.bind()}
-							/>
-
-							{STAT_BLOCKS.map((section) => {
-								const experienceTotal = sumBy(
-									section.stats,
-									(stat) => Number(experienceView.stats.get(stat)?.value) || 0,
-								)
-
-								const previewItems = section.stats
-									.map((stat) => {
-										const dataValue =
-											Number(experienceView.stats.get(stat)?.value) || 0
-
-										return dataValue > 0 ? (
-											<span key={stat} className="badge">
-												{stat} {dataValue}
-											</span>
-										) : null
-									})
-									.filter(Boolean)
-
-								return (
-									<Field
-										key={section.name}
-										label={`${section.name}${
-											experienceTotal === section.requiredCountInExperiences
-												? ""
-												: ` (${experienceTotal}/${section.requiredCountInExperiences})`
-										}`}
-									>
-										<Popover.Root>
-											<Popover.Trigger className="focus-visible-outline min-h-10 rounded border border-white/10 bg-white/5 p-2 text-start leading-6 transition hover:bg-white/10">
-												<div className="flex items-center gap-1.5">
-													<div className="flex flex-1 flex-wrap gap-1">
-														{previewItems}
-													</div>
-													<Icon
-														icon="mingcute:edit-2-fill"
-														className="opacity-50"
-													/>
-												</div>
-											</Popover.Trigger>
-
-											<Popover.Portal>
-												<Popover.Backdrop />
-												<Popover.Positioner sideOffset={12} align="start">
-													<Popover.Popup className="min-w-44 rounded border border-stone-800 bg-stone-900 shadow-black/50 shadow-md transition data-ending-style:translate-y-1 data-starting-style:translate-y-1 data-ending-style:opacity-0 data-starting-style:opacity-0">
-														<div className="flex flex-col gap-1 p-1">
-															{section.stats.map((stat) => {
-																const statView = experienceView.stats.get(stat)
-																const statValue = Number(statView?.value) || 0
-
-																const onIncrement = () => {
-																	statView?.setValue(statValue + 1)
-																}
-
-																const onDecrement = () => {
-																	statView?.setValue(statValue - 1)
-																}
-
-																return (
-																	<div key={stat} className="relative flex">
-																		<button
-																			type="button"
-																			className="focus-visible-outline h-10 flex-1 rounded px-3 pr-10 text-start transition hover:bg-white/10"
-																			onClick={onIncrement}
-																		>
-																			{stat}: {statValue}
-																		</button>
-
-																		<button
-																			type="button"
-																			data-visible={statValue > 0 || undefined}
-																			className="focus-visible-outline absolute right-0 flex size-8 items-center justify-center self-center whitespace-nowrap rounded-full font-medium leading-none opacity-50 transition-all hover:bg-white/10 data-visible:opacity-100"
-																			onClick={onDecrement}
-																		>
-																			<Icon
-																				icon="mingcute:minimize-fill"
-																				className="size-4"
-																			/>
-																		</button>
-																	</div>
-																)
-															})}
-														</div>
-													</Popover.Popup>
-												</Popover.Positioner>
-											</Popover.Portal>
-										</Popover.Root>
-									</Field>
-								)
-							})}
-
-							<TextAreaField
-								label="Description"
-								placeholder="What happened in their life?"
-								rows={3}
-								className="col-span-full"
-								{...experienceView.description.bind()}
-							/>
-						</div>
+							experienceView={experienceView}
+						/>
 					))}
 				</div>
 			</section>
 		</div>
 	)
+}
+
+function ExperienceRow({ experienceView }: { experienceView: ExperienceView }) {
+	return (
+		<div className="grid grid-cols-3 gap-x-2 gap-y-2 border-gray-800 not-first:border-t not-first:pt-8">
+			<SelectField
+				label="Type"
+				options={["Origin", "Resource", "Setback", "Bond", "Loss"]}
+				placeholder="Choose a type"
+				{...experienceView.type.bind()}
+			/>
+
+			{STAT_BLOCKS.map((section) => (
+				<ExperienceStatField
+					key={section.name}
+					section={section}
+					experienceView={experienceView}
+				/>
+			))}
+
+			<TextAreaField
+				label="Description"
+				placeholder="What happened in their life?"
+				rows={3}
+				className="col-span-full"
+				{...experienceView.description.bind()}
+			/>
+		</div>
+	)
+}
+
+function ExperienceStatField({
+	section,
+	experienceView,
+}: {
+	section: (typeof STAT_BLOCKS)[number]
+	experienceView: ExperienceView
+}) {
+	const experienceTotal = sumBy(
+		section.stats,
+		(stat) => experienceView.stats.get(stat)?.value ?? 0,
+	)
+
+	const fieldLabel = `${section.name}${totalDisplayedWhenMismatched(
+		experienceTotal,
+		section.requiredCountInExperiences,
+	)}`
+
+	return (
+		<Field key={section.name} label={fieldLabel}>
+			<Popover.Root>
+				<Popover.Trigger className="focus-visible-outline min-h-10 rounded border border-white/10 bg-white/5 p-2 text-start leading-6 transition hover:bg-white/10">
+					<div className="flex items-center gap-1.5">
+						<div className="flex flex-1 flex-wrap gap-1">
+							{section.stats.map((stat) => {
+								const dataValue = experienceView.stats.get(stat)?.value ?? 0
+								return dataValue > 0 ? (
+									<span key={stat} className="badge">
+										{stat} {dataValue}
+									</span>
+								) : null
+							})}
+						</div>
+						<Icon icon="mingcute:edit-2-fill" className="opacity-50" />
+					</div>
+				</Popover.Trigger>
+
+				<Popover.Portal>
+					<Popover.Backdrop />
+					<Popover.Positioner sideOffset={12} align="start">
+						<Popover.Popup className="min-w-44 rounded border border-stone-800 bg-stone-900 shadow-black/50 shadow-md transition data-ending-style:translate-y-1 data-starting-style:translate-y-1 data-ending-style:opacity-0 data-starting-style:opacity-0">
+							<div className="flex flex-col gap-1 p-1">
+								{section.stats.map((stat) => {
+									const statView = experienceView.stats.get(stat)
+									const statValue = statView?.value ?? 0
+
+									const onIncrement = () => {
+										statView?.setValue(statValue + 1)
+									}
+
+									const onDecrement = () => {
+										statView?.setValue(statValue - 1)
+									}
+
+									return (
+										<div key={stat} className="relative flex">
+											<button
+												type="button"
+												className="focus-visible-outline h-10 flex-1 rounded px-3 pr-10 text-start transition hover:bg-white/10"
+												onClick={onIncrement}
+											>
+												{stat}: {statValue}
+											</button>
+
+											<button
+												type="button"
+												data-visible={statValue > 0 || undefined}
+												className="focus-visible-outline absolute right-0 flex size-8 items-center justify-center self-center whitespace-nowrap rounded-full font-medium leading-none opacity-50 transition-all hover:bg-white/10 data-visible:opacity-100"
+												onClick={onDecrement}
+											>
+												<Icon
+													icon="mingcute:minimize-fill"
+													className="size-4"
+												/>
+											</button>
+										</div>
+									)
+								})}
+							</div>
+						</Popover.Popup>
+					</Popover.Positioner>
+				</Popover.Portal>
+			</Popover.Root>
+		</Field>
+	)
+}
+
+function totalDisplayedWhenMismatched(total: number, requiredTotal: number) {
+	return total !== requiredTotal ? ` (${total}/${requiredTotal})` : ""
 }
