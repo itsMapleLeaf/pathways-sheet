@@ -5,6 +5,7 @@ import { type } from "arktype"
 import { useEffect, useState } from "react"
 import { SheetData } from "./SheetData.ts"
 import { SheetEditor } from "./SheetEditor.tsx"
+import { MenuItem, MenuPanel, MenuRoot, MenuTrigger } from "./ui/Menu.tsx"
 import { Tooltip } from "./ui/Tooltip.tsx"
 import { useLocalStorage } from "./useLocalStorage.ts"
 
@@ -40,7 +41,7 @@ export function App() {
 		try {
 			const parsed = type("string.json.parse")
 				.to(SheetData)
-				.assert(decodeURIComponent(data))
+				.assert(decodeURIComponent(atob(data)))
 
 			const id = crypto.randomUUID()
 			setSheets((prev) => ({ ...prev, [id]: { ...parsed, id } }))
@@ -100,7 +101,7 @@ export function App() {
 
 	function getSheetLink(sheet: SheetData) {
 		const json = JSON.stringify(sheet)
-		const encoded = encodeURIComponent(json)
+		const encoded = btoa(encodeURIComponent(json))
 		return `${window.location.origin}${window.location.pathname}?data=${encoded}`
 	}
 
@@ -227,14 +228,16 @@ export function App() {
 function CopyButton({
 	tooltip,
 	content,
+	linkText = "Sheet Link",
 }: {
 	tooltip: React.ReactNode
 	content: string
+	linkText?: string
 }) {
 	const [copied, setCopied] = useState(false)
 	const [tooltipOpen, setTooltipOpen] = useState(false)
 
-	async function copy() {
+	async function copy(content: string) {
 		if (copied) return
 
 		try {
@@ -251,23 +254,33 @@ function CopyButton({
 	}
 
 	return (
-		<Tooltip
-			content={copied ? "Copied!" : tooltip}
-			side="bottom"
-			open={tooltipOpen || copied}
-			onOpenChange={setTooltipOpen}
-		>
-			<button
-				type="button"
-				className="flex size-8 items-center justify-center rounded transition hover:bg-stone-800"
-				onClick={copy}
+		<MenuRoot>
+			<Tooltip
+				content={copied ? "Copied!" : tooltip}
+				side="bottom"
+				open={tooltipOpen || copied}
+				onOpenChange={setTooltipOpen}
 			>
-				<Icon
-					icon={copied ? "mingcute:check-fill" : "mingcute:link-fill"}
-					className="size-5"
-				/>
-				<span className="sr-only">Copy Link</span>
-			</button>
-		</Tooltip>
+				<MenuTrigger className="flex size-8 items-center justify-center rounded transition hover:bg-stone-800">
+					<Icon
+						icon={copied ? "mingcute:check-fill" : "mingcute:link-fill"}
+						className="size-5"
+					/>
+					<span className="sr-only">Copy Link</span>
+				</MenuTrigger>
+			</Tooltip>
+
+			<MenuPanel align="end">
+				<MenuItem
+					icon="mingcute:discord-fill"
+					onClick={() => copy(`[${linkText}](${content})`)}
+				>
+					Discord Markdown
+				</MenuItem>
+				<MenuItem icon="mingcute:link-fill" onClick={() => copy(content)}>
+					URL
+				</MenuItem>
+			</MenuPanel>
+		</MenuRoot>
 	)
 }
