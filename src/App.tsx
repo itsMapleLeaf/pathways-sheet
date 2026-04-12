@@ -115,10 +115,10 @@ export function App() {
 				<div className="flex justify-end gap-2">
 					{currentSheet && (
 						<>
-							<CopyButton
+							{/* <CopyButton
 								tooltip="Copy sheet link to clipboard"
 								content={getSheetLink(currentSheet)}
-							/>
+							/> */}
 
 							<Tooltip content="Save current sheet as JSON file" side="bottom">
 								<button
