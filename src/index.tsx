@@ -1,5 +1,3 @@
-/// <reference types="@total-typescript/ts-reset" />
-
 import { createRoot } from "react-dom/client"
 import { App } from "./App.tsx"
 import { TooltipProvider } from "./ui/Tooltip.tsx"

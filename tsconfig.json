@@ -1,7 +1,8 @@
 {
 	"compilerOptions": {
 		// environment
-		"lib": ["ESNext", "DOM"],
+		"lib": ["ES2025", "DOM", "DOM.Iterable"],
+		"types": ["@total-typescript/ts-reset", "vite/client"],
 
 		// output
 		"noEmit": true,
