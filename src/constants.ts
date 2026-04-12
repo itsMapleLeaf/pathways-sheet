@@ -17,15 +17,15 @@ export const EXPERIENCE_TYPES: ExperienceType[] = [
 	{
 		name: "Resource",
 		prompts: {
-			Paths: "Which paths did you take to acquire this?",
-			Skills: "Which skills did this resource improve?",
+			Paths: "Which paths did you take in acquiring this?",
+			Skills: "Which skills did this resource give you?",
 		},
 	},
 	{
 		name: "Setback",
 		prompts: {
-			Paths: "How did you react to this setback?",
-			Skills: "Which skills did you rely on?",
+			Paths: "How did you act in this setback?",
+			Skills: "Which skills did you use to get through it?",
 		},
 	},
 	{
@@ -39,7 +39,7 @@ export const EXPERIENCE_TYPES: ExperienceType[] = [
 		name: "Loss",
 		prompts: {
 			Paths: "How did this loss make you act?",
-			Skills: "Which skills did you rely on?",
+			Skills: "Which skills did you use to cope with this loss?",
 		},
 	},
 ]
