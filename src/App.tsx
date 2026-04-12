@@ -371,7 +371,16 @@ function ExperienceStatField({
 										<div key={stat} className="relative flex">
 											<button
 												type="button"
-												className="focus-visible-outline h-10 flex-1 rounded px-3 pr-10 text-start transition hover:bg-white/10"
+												className="focus-visible-outline absolute left-0 flex size-8 items-center justify-center self-center whitespace-nowrap rounded-full font-medium leading-none transition-all hover:bg-white/10"
+												onClick={onDecrement}
+											>
+												<Icon icon="mingcute:left-fill" className="size-4" />
+												<span className="sr-only">Decrement</span>
+											</button>
+
+											<button
+												type="button"
+												className="focus-visible-outline h-10 flex-1 rounded px-8 text-start transition hover:bg-white/10"
 												onClick={onIncrement}
 											>
 												{stat}: {statValue}
@@ -379,14 +388,11 @@ function ExperienceStatField({
 
 											<button
 												type="button"
-												data-visible={statValue > 0 || undefined}
-												className="focus-visible-outline absolute right-0 flex size-8 items-center justify-center self-center whitespace-nowrap rounded-full font-medium leading-none opacity-50 transition-all hover:bg-white/10 data-visible:opacity-100"
-												onClick={onDecrement}
+												className="focus-visible-outline absolute right-0 flex size-8 items-center justify-center self-center whitespace-nowrap rounded-full font-medium leading-none transition-all hover:bg-white/10"
+												onClick={onIncrement}
 											>
-												<Icon
-													icon="mingcute:minimize-fill"
-													className="size-4"
-												/>
+												<Icon icon="mingcute:right-fill" className="size-4" />
+												<span className="sr-only">Increment</span>
 											</button>
 										</div>
 									)
