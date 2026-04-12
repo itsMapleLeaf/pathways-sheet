@@ -7,10 +7,10 @@ import {
 	SPECIES_LIST,
 	SPECIES_MAP,
 	STAT_BLOCKS,
-} from "@/constants.ts"
-import { Field, InputField, SelectField, TextAreaField } from "@/Field.tsx"
-import type { SheetData } from "@/SheetData.ts"
-import { createSheetView, type ExperienceView } from "@/SheetView.ts"
+} from "./constants.ts"
+import { Field, InputField, SelectField, TextAreaField } from "./Field.tsx"
+import type { SheetData } from "./SheetData.ts"
+import { createSheetView, type ExperienceView } from "./SheetView.ts"
 
 const statStyles: Record<string, string> = {
 	Force: twMerge("border-red-700/50 bg-red-800/40 text-red-200"),
