@@ -3,6 +3,7 @@ import { Popover } from "@base-ui/react"
 import { Icon } from "@iconify/react"
 import { type } from "arktype"
 import { sum, sumBy } from "es-toolkit"
+import { twMerge } from "tailwind-merge"
 import {
 	SPECIES_LIST,
 	SPECIES_MAP,
@@ -12,6 +13,18 @@ import {
 import { Field, InputField, SelectField, TextAreaField } from "./Field.tsx"
 import { SheetData } from "./SheetData.ts"
 import { useLocalStorage } from "./useLocalStorage.ts"
+
+const statStyles: Record<string, string> = {
+	Force: twMerge("border-red-700/50 bg-red-800/40 text-red-200"),
+	Direction: twMerge("border-yellow-700/50 bg-yellow-800/40 text-yellow-200"),
+	Avoidance: twMerge("border-green-700/50 bg-green-800/40 text-green-200"),
+	Alignment: twMerge("border-blue-700/50 bg-blue-800/40 text-blue-200"),
+	Strength: twMerge("border-red-700/50 bg-red-800/40 text-red-200"),
+	Agility: twMerge("border-green-700/50 bg-green-800/40 text-green-200"),
+	Precision: twMerge("border-blue-700/50 bg-blue-800/40 text-blue-200"),
+	Logic: twMerge("border-yellow-700/50 bg-yellow-800/40 text-yellow-200"),
+	Presence: twMerge("border-purple-700/50 bg-purple-800/40 text-purple-200"),
+}
 
 type SheetView = ReturnType<typeof createSheetView>
 
@@ -229,7 +242,10 @@ export function App() {
 										{statEntries.map(([stat, value]) => (
 											<p
 												key={stat}
-												className="badge border border-gray-700"
+												className={twMerge(
+													"badge border border-gray-700",
+													statStyles[stat],
+												)}
 											>{`${stat} ${value}`}</p>
 										))}
 									</div>
@@ -253,7 +269,10 @@ export function App() {
 							{block.stats.map((stat) => (
 								<div
 									key={stat}
-									className="flex flex-col items-center gap-1.5 rounded border border-white/10 bg-white/5 p-3"
+									className={twMerge(
+										"flex flex-col items-center gap-1.5 rounded border border-white/10 bg-white/5 p-3",
+										statStyles[stat],
+									)}
 								>
 									<dt className="font-bold text-2xl/none">
 										{getStatValue(stat)}
@@ -336,7 +355,10 @@ function ExperienceStatField({
 							{section.stats.map((stat) => {
 								const dataValue = experienceView.stats.get(stat)?.value ?? 0
 								return dataValue > 0 ? (
-									<span key={stat} className="badge">
+									<span
+										key={stat}
+										className={twMerge("badge", statStyles[stat])}
+									>
 										{stat} {dataValue}
 									</span>
 								) : null

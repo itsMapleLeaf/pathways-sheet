@@ -18,13 +18,13 @@ export type StatBlock = {
 export const STAT_BLOCKS: StatBlock[] = [
 	{
 		name: "Paths",
-		stats: ["Force", "Avoidance", "Alignment", "Direction"],
+		stats: ["Force", "Direction", "Avoidance", "Alignment"],
 		requiredCountInExperiences: PATHS_PER_EXPERIENCE,
 		requiredTotal: EXPERIENCE_COUNT * PATHS_PER_EXPERIENCE + SPECIES_PATH_COUNT,
 	},
 	{
 		name: "Skills",
-		stats: ["Strength", "Agility", "Precision", "Logic", "Presence"],
+		stats: ["Strength", "Logic", "Agility", "Precision", "Presence"],
 		requiredCountInExperiences: SKILLS_PER_EXPERIENCE,
 		requiredTotal:
 			EXPERIENCE_COUNT * SKILLS_PER_EXPERIENCE + SPECIES_SKILL_COUNT,
