@@ -4,11 +4,10 @@ import { Icon } from "@iconify/react"
 import { type } from "arktype"
 import { sum, sumBy } from "es-toolkit"
 import {
-	PATHS,
-	SKILLS,
 	SPECIES_LIST,
 	SPECIES_MAP,
 	STAT_BLOCKS,
+	STAT_NAMES,
 } from "./constants.ts"
 import { Field, InputField, SelectField, TextAreaField } from "./Field.tsx"
 import { SheetData } from "./SheetData.ts"
@@ -86,10 +85,7 @@ function createSheetView(
 				type: stringView(`${key}:type`),
 				description: stringView(`${key}:description`),
 				stats: new Map(
-					[...PATHS, ...SKILLS].map((stat) => [
-						stat,
-						numberView(`${key}:stats:${stat}`),
-					]),
+					STAT_NAMES.map((stat) => [stat, numberView(`${key}:stats:${stat}`)]),
 				),
 			})),
 	}
@@ -200,6 +196,13 @@ export function App() {
 					/>
 				</div>
 
+				<TextAreaField
+					label="Concept / Notes"
+					placeholder="An astronomical character!"
+					rows={3}
+					{...sheetView.concept.bind()}
+				/>
+
 				<section className="flex flex-col gap-2">
 					<SelectField
 						label="Species"
@@ -235,13 +238,6 @@ export function App() {
 						})}
 					</div>
 				</section>
-
-				<TextAreaField
-					label="Concept / Notes"
-					placeholder="An astronomical character!"
-					rows={3}
-					{...sheetView.concept.bind()}
-				/>
 			</section>
 
 			{STAT_BLOCKS.map((block) => {

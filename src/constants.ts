@@ -1,21 +1,12 @@
 import { startCase } from "es-toolkit"
 
-export const PATHS = ["Force", "Avoidance", "Alignment", "Direction"]
-export const PATHS_PER_EXPERIENCE = 3
+const EXPERIENCE_COUNT = 5
 
-export const SKILLS = ["Strength", "Agility", "Precision", "Logic", "Presence"]
-export const SKILLS_PER_EXPERIENCE = 2
+const PATHS_PER_EXPERIENCE = 3
+const SKILLS_PER_EXPERIENCE = 2
 
-export const EXPERIENCE_COUNT = 5
-
-export const SPECIES_PATH_COUNT = 3
-export const SPECIES_SKILL_COUNT = 2
-
-export const TOTAL_PATHS =
-	EXPERIENCE_COUNT * PATHS_PER_EXPERIENCE + SPECIES_PATH_COUNT
-
-export const TOTAL_SKILLS =
-	EXPERIENCE_COUNT * SKILLS_PER_EXPERIENCE + SPECIES_SKILL_COUNT
+const SPECIES_PATH_COUNT = 3
+const SPECIES_SKILL_COUNT = 2
 
 export type StatBlock = {
 	name: string
@@ -27,18 +18,20 @@ export type StatBlock = {
 export const STAT_BLOCKS: StatBlock[] = [
 	{
 		name: "Paths",
-		stats: PATHS,
-		requiredCountInExperiences: 3,
+		stats: ["Force", "Avoidance", "Alignment", "Direction"],
+		requiredCountInExperiences: PATHS_PER_EXPERIENCE,
 		requiredTotal: EXPERIENCE_COUNT * PATHS_PER_EXPERIENCE + SPECIES_PATH_COUNT,
 	},
 	{
 		name: "Skills",
-		stats: SKILLS,
-		requiredCountInExperiences: 2,
+		stats: ["Strength", "Agility", "Precision", "Logic", "Presence"],
+		requiredCountInExperiences: SKILLS_PER_EXPERIENCE,
 		requiredTotal:
 			EXPERIENCE_COUNT * SKILLS_PER_EXPERIENCE + SPECIES_SKILL_COUNT,
 	},
 ]
+
+export const STAT_NAMES = STAT_BLOCKS.flatMap(({ stats }) => stats)
 
 export type SpeciesData = {
 	name: string
@@ -205,10 +198,7 @@ export const SPECIES_LIST: SpeciesData[] = [
 		statMap: new Map(
 			Object.entries(data).flatMap(([k, v]) => {
 				const statName = startCase(k)
-				if (
-					(PATHS.includes(statName) || SKILLS.includes(statName)) &&
-					typeof v === "number"
-				) {
+				if (STAT_NAMES.includes(statName) && typeof v === "number") {
 					return [[statName, v]]
 				}
 				return []
