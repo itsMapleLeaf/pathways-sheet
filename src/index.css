@@ -29,10 +29,15 @@
 	--color-primary-950: var(--color-fuchsia-950);
 }
 
-@utility badge {
-	@apply rounded bg-white/10 px-1.5 py-1 font-medium text-[15px] leading-4;
+@layer components {
+	.badge {
+		@apply rounded bg-white/10 px-1.5 py-1 font-medium text-[15px] leading-4;
+	}
 }
 
 @utility focus-visible-outline {
 	@apply outline-2 outline-transparent focus-visible:outline-fuchsia-400/50;
 }
+
+@custom-variant base-ui-transition-out (&[data-starting-style],
+&[data-ending-style]);
