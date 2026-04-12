@@ -25,7 +25,8 @@
 		"rules": {
 			"suspicious": "off",
 			"complexity": {
-				"noBannedTypes": "off"
+				"noBannedTypes": "off",
+				"useLiteralKeys": "off"
 			},
 			"style": {
 				"useTemplate": "off"

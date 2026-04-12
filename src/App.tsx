@@ -45,7 +45,6 @@ export function App() {
 			type: "application/json",
 		})
 
-		// biome-ignore lint/complexity/useLiteralKeys: data is a dict
 		const name = String(sheet.data["name"] || "sheet").replaceAll(
 			/[^a-z0-9-_]/gi,
 			"",
@@ -121,7 +120,6 @@ export function App() {
 								value={sheet.id}
 								className="focus-visible-outline peer h-9 w-40 rounded px-2.5 text-start opacity-75 transition hover:bg-stone-800 hover:opacity-100 data-active:bg-stone-800 data-active:pr-8 data-active:opacity-100"
 							>
-								{/** biome-ignore lint/complexity/useLiteralKeys: this is a dict */}
 								{sheet.data["name"] ?? (
 									<div className="max-w-full truncate text-stone-400 italic">
 										Unnamed Character
