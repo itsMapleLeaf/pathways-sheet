@@ -208,7 +208,7 @@ function ExperienceStatField({
 						<div className="flex flex-1 flex-wrap gap-1">
 							{section.stats.map((stat) => {
 								const dataValue = experienceView.stats.get(stat)?.value ?? 0
-								return dataValue > 0 ? (
+								return dataValue !== 0 ? (
 									<span
 										key={stat}
 										className={twMerge("badge", statStyles[stat])}
