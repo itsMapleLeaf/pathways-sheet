@@ -1,7 +1,6 @@
 ## UX improvements
 
 - tabs
-- stat colors
 - ruleset toggles
 
 ## polish
@@ -14,4 +13,3 @@
 ## internal
 
 - make save work in VS Browser extension (just printing data in console for now)
-- specific typed data view calls
