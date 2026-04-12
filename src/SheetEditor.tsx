@@ -254,6 +254,10 @@ function ExperienceStatField({
 												type="button"
 												className="focus-visible-outline h-10 flex-1 rounded px-8 text-start transition hover:bg-white/10"
 												onClick={onIncrement}
+												onContextMenu={(event) => {
+													event.preventDefault()
+													onDecrement()
+												}}
 											>
 												{stat}: {statValue}
 											</button>
