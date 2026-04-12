@@ -11,35 +11,35 @@ export const EXPERIENCE_TYPES: ExperienceType[] = [
 		name: "Environment",
 		prompts: {
 			Paths: "How did you act in this environment?",
-			Skills: "Which skills were improved?",
+			Skills: "Which skills were improved in this environment?",
 		},
 	},
 	{
 		name: "Resource",
 		prompts: {
 			Paths: "Which paths did you take in acquiring this?",
-			Skills: "Which skills did this resource give you?",
+			Skills: "Which skills were improved by this resource?",
 		},
 	},
 	{
 		name: "Setback",
 		prompts: {
 			Paths: "How did you act in this setback?",
-			Skills: "Which skills did you use to get through it?",
+			Skills: "Which skills were strengthened by this setback?",
 		},
 	},
 	{
 		name: "Bond",
 		prompts: {
 			Paths: "How did you act towards them?",
-			Skills: "Which skills did they teach you?",
+			Skills: "Which skills were gained from this bond?",
 		},
 	},
 	{
 		name: "Loss",
 		prompts: {
 			Paths: "How did this loss make you act?",
-			Skills: "Which skills did this loss strengthen?",
+			Skills: "Which skills were strengthened by this loss?",
 		},
 	},
 ]
