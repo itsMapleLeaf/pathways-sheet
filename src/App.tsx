@@ -2,12 +2,14 @@ import "./index.css"
 import { Tabs } from "@base-ui/react"
 import { Icon } from "@iconify/react"
 import { type } from "arktype"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useEffectEvent, useState } from "react"
+import { createGitHubGist, fetchGitHubGist } from "./lib/gist.ts"
 import { useLocalStorage } from "./lib/useLocalStorage.ts"
 import { SheetData } from "./sheet/SheetData.ts"
 import { SheetEditor } from "./sheet/SheetEditor.tsx"
-import { MenuItem, MenuPanel, MenuRoot, MenuTrigger } from "./ui/Menu.tsx"
 import { Tooltip } from "./ui/Tooltip.tsx"
+
+const SheetDataFromJsonString = type("string.json.parse").to(SheetData)
 
 const fallbackSheetId = crypto.randomUUID()
 
@@ -32,26 +34,6 @@ export function App() {
 			: Object.keys(sheets)[0]
 
 	const currentSheet = currentSheetId && sheets[currentSheetId]
-
-	useEffect(() => {
-		const params = new URLSearchParams(window.location.search)
-		const data = params.get("data")
-		if (!data) return
-
-		try {
-			const parsed = type("string.json.parse")
-				.to(SheetData)
-				.assert(decodeURIComponent(atob(data)))
-
-			const id = crypto.randomUUID()
-			setSheets((prev) => ({ ...prev, [id]: { ...parsed, id } }))
-			setSelectedSheetId(id)
-			window.history.replaceState({}, document.title, window.location.pathname)
-		} catch (error) {
-			alert(`Failed to load sheet from URL: ${error}`)
-			console.error("Failed to load sheet from URL", { error, data })
-		}
-	}, [setSheets, setSelectedSheetId])
 
 	function saveSheet(sheet: SheetData) {
 		console.debug("exported sheet", sheet)
@@ -83,9 +65,7 @@ export function App() {
 			if (!file) return
 
 			try {
-				const parsed = type("string.json.parse")
-					.to(SheetData)
-					.assert(await file.text())
+				const parsed = SheetDataFromJsonString.assert(await file.text())
 
 				const id = crypto.randomUUID()
 				setSheets((prev) => ({ ...prev, [id]: { ...parsed, id } }))
@@ -99,11 +79,51 @@ export function App() {
 		input.click()
 	}
 
-	function getSheetLink(sheet: SheetData) {
+	async function createShareLink(sheet: SheetData) {
 		const json = JSON.stringify(sheet)
-		const encoded = btoa(encodeURIComponent(json))
-		return `${window.location.origin}${window.location.pathname}?data=${encoded}`
+		const gist = await createGitHubGist({
+			description: "Shared from Pathways RPG Sheet Editor",
+			files: {
+				"sheet.json": {
+					content: json,
+				},
+			},
+			public: false,
+		})
+		return `${window.location.origin}${window.location.pathname}?shareId=${gist.id}`
 	}
+
+	useEffect(() => {
+		const params = new URLSearchParams(window.location.search)
+		const gistId = params.get("shareId")
+		if (!gistId) return
+
+		void (async () => {
+			try {
+				const gist = await fetchGitHubGist(gistId)
+				const file = gist.files["sheet.json"]
+				if (!file) {
+					throw new Error("Gist does not contain sheet.json")
+				}
+
+				const parsed = SheetDataFromJsonString.assert(file.content)
+
+				const id = crypto.randomUUID()
+
+				setSheets((prev) => ({ ...prev, [id]: { ...parsed, id } }))
+				setSelectedSheetId(id)
+
+				window.history.replaceState(
+					{},
+					document.title,
+					window.location.pathname,
+				)
+			} catch (error) {
+				alert(`Failed to load sheet from URL: ${error}`)
+				console.error("Failed to load sheet from URL", { error, gistId })
+			}
+		})()
+	}, [setSheets, setSelectedSheetId])
 
 	return (
 		<div className="mx-auto flex max-w-screen-md flex-col gap-3 px-4 py-12">
@@ -116,8 +136,8 @@ export function App() {
 					{currentSheet && (
 						<>
 							{/* <CopyButton
-								tooltip="Copy sheet link to clipboard"
-								content={getSheetLink(currentSheet)}
+								tooltip="Create share link"
+								createShareLink={() => createShareLink(currentSheet)}
 							/> */}
 
 							<Tooltip content="Save current sheet as JSON file" side="bottom">
@@ -230,60 +250,89 @@ export function App() {
 
 function CopyButton({
 	tooltip,
-	content,
-	linkText = "Sheet Link",
+	createShareLink,
 }: {
 	tooltip: React.ReactNode
-	content: string
-	linkText?: string
+	createShareLink: () => Promise<string>
 }) {
 	const [copied, setCopied] = useState(false)
 	const [tooltipOpen, setTooltipOpen] = useState(false)
 
-	async function copy(content: string) {
+	const [copy, copyState] = useAsyncState(async () => {
 		if (copied) return
 
 		try {
-			await navigator.clipboard.writeText(content)
+			const link = await createShareLink()
+			await navigator.clipboard.writeText(link)
+
 			setCopied(true)
 			setTooltipOpen(true)
+
 			setTimeout(() => {
 				setCopied(false)
 				setTooltipOpen(false)
-			}, 1000)
+			}, 2000)
 		} catch (error) {
 			alert(`Failed to copy: ${error}`)
 		}
-	}
+	})
 
 	return (
-		<MenuRoot>
-			<Tooltip
-				content={copied ? "Copied!" : tooltip}
-				side="bottom"
-				open={tooltipOpen || copied}
-				onOpenChange={setTooltipOpen}
+		<Tooltip
+			content={copied ? "Copied!" : tooltip}
+			side="bottom"
+			open={tooltipOpen || copied}
+			onOpenChange={setTooltipOpen}
+		>
+			<button
+				type="button"
+				className="flex size-8 items-center justify-center rounded transition hover:bg-stone-800"
+				onClick={copy}
 			>
-				<MenuTrigger className="flex size-8 items-center justify-center rounded transition hover:bg-stone-800">
-					<Icon
-						icon={copied ? "mingcute:check-fill" : "mingcute:link-fill"}
-						className="size-5"
-					/>
-					<span className="sr-only">Copy Link</span>
-				</MenuTrigger>
-			</Tooltip>
-
-			<MenuPanel align="end">
-				<MenuItem
-					icon="mingcute:discord-fill"
-					onClick={() => copy(`[${linkText}](${content})`)}
-				>
-					Discord Markdown
-				</MenuItem>
-				<MenuItem icon="mingcute:link-fill" onClick={() => copy(content)}>
-					URL
-				</MenuItem>
-			</MenuPanel>
-		</MenuRoot>
+				<Icon
+					icon={
+						copyState.status === "pending"
+							? "mingcute:loading-3-fill"
+							: copied
+								? "mingcute:check-fill"
+								: "mingcute:link-fill"
+					}
+					data-pending={copyState.status === "pending" || undefined}
+					className="size-5 data-pending:animate-spin"
+				/>
+				<span className="sr-only">{tooltip}</span>
+			</button>
+		</Tooltip>
 	)
+}
+
+type AsyncState<T> =
+	| { status: "idle" }
+	| { status: "pending" }
+	| { status: "success"; data: T }
+	| { status: "error"; error: unknown }
+
+function useAsyncState<Args extends unknown[], Return>(
+	func: (...args: Args) => Return | Promise<Return>,
+) {
+	const [state, setState] = useState<AsyncState<Return>>({ status: "idle" })
+
+	const runCallback = useEffectEvent(async (...args: Args) => {
+		if (state.status === "pending") return
+
+		setState({ status: "pending" })
+
+		try {
+			const result = await func(...args)
+			setState({ status: "success", data: result })
+		} catch (error) {
+			setState({ status: "error", error })
+		}
+	})
+
+	const runCallbackMemo = useCallback((...args: Args) => {
+		runCallback(...args)
+	}, [])
+
+	return [runCallbackMemo, state] as const
 }
