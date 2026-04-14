@@ -1,6 +1,6 @@
 import { Menu as BaseMenu } from "@base-ui/react"
 import { Icon } from "@iconify/react"
-import { twMergeCallback } from "../common.ts"
+import { twMergeCallback } from "../lib/common.ts"
 
 export function MenuRoot(props: BaseMenu.Root.Props) {
 	return <BaseMenu.Root {...props} />

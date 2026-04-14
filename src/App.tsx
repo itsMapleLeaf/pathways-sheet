@@ -3,11 +3,11 @@ import { Tabs } from "@base-ui/react"
 import { Icon } from "@iconify/react"
 import { type } from "arktype"
 import { useEffect, useState } from "react"
-import { SheetData } from "./SheetData.ts"
-import { SheetEditor } from "./SheetEditor.tsx"
+import { useLocalStorage } from "./lib/useLocalStorage.ts"
+import { SheetData } from "./sheet/SheetData.ts"
+import { SheetEditor } from "./sheet/SheetEditor.tsx"
 import { MenuItem, MenuPanel, MenuRoot, MenuTrigger } from "./ui/Menu.tsx"
 import { Tooltip } from "./ui/Tooltip.tsx"
-import { useLocalStorage } from "./useLocalStorage.ts"
 
 const fallbackSheetId = crypto.randomUUID()
 

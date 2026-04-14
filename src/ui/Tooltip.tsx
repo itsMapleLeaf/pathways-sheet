@@ -1,6 +1,6 @@
 import { Tooltip as BaseTooltip } from "@base-ui/react"
 import type { Except } from "type-fest"
-import { twMergeCallback } from "../common.ts"
+import { twMergeCallback } from "../lib/common.ts"
 
 export function TooltipProvider(props: BaseTooltip.Provider.Props) {
 	return <BaseTooltip.Provider delay={300} {...props} />

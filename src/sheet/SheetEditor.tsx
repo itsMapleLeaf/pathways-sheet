@@ -7,8 +7,8 @@ import {
 	SPECIES_LIST,
 	SPECIES_MAP,
 	STAT_BLOCKS,
-} from "./constants.ts"
-import { Field, InputField, SelectField, TextAreaField } from "./Field.tsx"
+} from "../lib/constants.ts"
+import { Field, InputField, SelectField, TextAreaField } from "../ui/Field.tsx"
 import type { SheetData } from "./SheetData.ts"
 import { createSheetView, type ExperienceView } from "./SheetView.ts"
 

@@ -1,4 +1,4 @@
-import { STAT_NAMES } from "./constants.ts"
+import { STAT_NAMES } from "../lib/constants.ts"
 import type { SheetData } from "./SheetData.ts"
 
 export type SheetView = ReturnType<typeof createSheetView>
