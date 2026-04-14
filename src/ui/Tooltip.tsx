@@ -52,6 +52,7 @@ export function TooltipPanel({
 
 export interface TooltipProps extends Except<TooltipPanelProps, "content"> {
 	content: React.ReactNode
+	children: React.ReactElement
 	open?: boolean
 	onOpenChange?: (open: boolean) => void
 }
@@ -72,7 +73,7 @@ export function Tooltip({
 }: TooltipProps) {
 	return (
 		<TooltipRoot open={open} onOpenChange={onOpenChange}>
-			<TooltipTrigger>{props.children}</TooltipTrigger>
+			<TooltipTrigger render={props.children}></TooltipTrigger>
 			<TooltipPanel {...props}>{content}</TooltipPanel>
 		</TooltipRoot>
 	)
