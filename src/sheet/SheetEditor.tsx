@@ -145,6 +145,8 @@ export function SheetEditor({
 							key={experienceIndex}
 							experienceView={experienceView}
 							statBlocks={visibleStatBlocks}
+							onMoveUp={experienceIndex > 0 ? () => sheetView.swapExperiences(experienceIndex - 1, experienceIndex) : undefined}
+							onMoveDown={experienceIndex < sheetView.experiences.length - 1 ? () => sheetView.swapExperiences(experienceIndex, experienceIndex + 1) : undefined}
 						/>
 					))}
 				</div>
@@ -156,9 +158,13 @@ export function SheetEditor({
 function ExperienceRow({
 	experienceView,
 	statBlocks,
+	onMoveUp,
+	onMoveDown,
 }: {
 	experienceView: ExperienceView
 	statBlocks: StatBlock[]
+	onMoveUp?: () => void
+	onMoveDown?: () => void
 }) {
 	const experienceTypePrompts = EXPERIENCE_TYPES.find(
 		(type) => type.name === experienceView.type.value,
@@ -194,6 +200,29 @@ function ExperienceRow({
 						</div>
 					)
 				})}
+			</div>
+
+			<div className="flex justify-end gap-1">
+				{onMoveUp && (
+					<button
+						type="button"
+						className="flex size-8 items-center justify-center rounded transition hover:bg-stone-800"
+						onClick={onMoveUp}
+					>
+						<Icon icon="mingcute:arrow-up-fill" className="size-4" />
+						<span className="sr-only">Move up</span>
+					</button>
+				)}
+				{onMoveDown && (
+					<button
+						type="button"
+						className="flex size-8 items-center justify-center rounded transition hover:bg-stone-800"
+						onClick={onMoveDown}
+					>
+						<Icon icon="mingcute:arrow-down-fill" className="size-4" />
+						<span className="sr-only">Move down</span>
+					</button>
+				)}
 			</div>
 		</div>
 	)

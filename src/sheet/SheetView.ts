@@ -102,6 +102,35 @@ export function createSheetView(
 					STAT_NAMES.map((stat) => [stat, numberView(`${key}:stats:${stat}`)]),
 				),
 			})),
+		swapExperiences(indexA: number, indexB: number) {
+			updateSheet((sheet) => {
+				const prefixA = `experiences:${indexA}:`
+				const prefixB = `experiences:${indexB}:`
+				const newData = { ...sheet.data }
+
+				const entriesA: Record<string, string | number> = {}
+				const entriesB: Record<string, string | number> = {}
+
+				for (const [key, value] of Object.entries(newData)) {
+					if (key.startsWith(prefixA)) {
+						entriesA[key.slice(prefixA.length)] = value
+						delete newData[key]
+					} else if (key.startsWith(prefixB)) {
+						entriesB[key.slice(prefixB.length)] = value
+						delete newData[key]
+					}
+				}
+
+				for (const [suffix, value] of Object.entries(entriesA)) {
+					newData[`${prefixB}${suffix}`] = value
+				}
+				for (const [suffix, value] of Object.entries(entriesB)) {
+					newData[`${prefixA}${suffix}`] = value
+				}
+
+				return { ...sheet, data: newData }
+			})
+		},
 	}
 
 	return sheetView
