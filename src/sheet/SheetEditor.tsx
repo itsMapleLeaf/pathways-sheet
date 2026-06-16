@@ -7,6 +7,7 @@ import {
 	SPECIES_LIST,
 	SPECIES_MAP,
 	STAT_BLOCKS,
+	type StatBlock,
 } from "../lib/constants.ts"
 import { Field, InputField, SelectField, TextAreaField } from "../ui/Field.tsx"
 import type { SheetData } from "./SheetData.ts"
@@ -42,6 +43,11 @@ export function SheetEditor({
 			speciesData?.statMap.get(stat) ?? 0,
 		])
 
+	const visibleStatBlocks = STAT_BLOCKS.filter((block) => {
+		if (block.name === "Skills" && !sheetView.showSkills.value) return false
+		return true
+	})
+
 	return (
 		<div className="grid gap-6">
 			<section className="grid gap-4">
@@ -57,12 +63,14 @@ export function SheetEditor({
 						{...sheetView.pronouns.bind()}
 					/>
 				</div>
+
 				<TextAreaField
 					label="Concept / Notes"
 					placeholder="An astronomical character!"
 					rows={3}
 					{...sheetView.concept.bind()}
 				/>
+
 				<section className="flex flex-col gap-2">
 					<SelectField
 						label="Species"
@@ -71,7 +79,7 @@ export function SheetEditor({
 						{...sheetView.species.bind()}
 					/>
 					<div className="grid auto-cols-fr grid-flow-col">
-						{STAT_BLOCKS.map((block) => {
+						{visibleStatBlocks.map((block) => {
 							const statEntries = block.stats
 								.map((stat) => {
 									const value = speciesData?.statMap.get(stat) ?? 0
@@ -100,7 +108,7 @@ export function SheetEditor({
 				</section>
 			</section>
 
-			{STAT_BLOCKS.map((block) => {
+			{visibleStatBlocks.map((block) => {
 				const blockTotal = sumBy(block.stats, getStatValue)
 				return (
 					<section className="grid gap-2" key={block.name}>
@@ -128,6 +136,7 @@ export function SheetEditor({
 					</section>
 				)
 			})}
+
 			<section className="grid gap-2">
 				<h2 className="mb-2 font-light text-2xl">Experiences</h2>
 				<div className="grid gap-8">
@@ -135,6 +144,7 @@ export function SheetEditor({
 						<ExperienceRow
 							key={experienceIndex}
 							experienceView={experienceView}
+							statBlocks={visibleStatBlocks}
 						/>
 					))}
 				</div>
@@ -143,7 +153,13 @@ export function SheetEditor({
 	)
 }
 
-function ExperienceRow({ experienceView }: { experienceView: ExperienceView }) {
+function ExperienceRow({
+	experienceView,
+	statBlocks,
+}: {
+	experienceView: ExperienceView
+	statBlocks: StatBlock[]
+}) {
 	const experienceTypePrompts = EXPERIENCE_TYPES.find(
 		(type) => type.name === experienceView.type.value,
 	)?.prompts
@@ -166,7 +182,7 @@ function ExperienceRow({ experienceView }: { experienceView: ExperienceView }) {
 			/>
 
 			<div className="flex gap-2 *:flex-1">
-				{STAT_BLOCKS.map((section) => {
+				{statBlocks.map((section) => {
 					const prompt = experienceTypePrompts?.[section.name]
 					return (
 						<div key={section.name} className="flex flex-col gap-1">

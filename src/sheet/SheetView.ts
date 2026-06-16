@@ -62,11 +62,37 @@ export function createSheetView(
 		}
 	}
 
+	function booleanView(key: string, fallback = false) {
+		const value = sheet.data[key] === 1 ? true : fallback
+
+		const setValue = (newValue: boolean) => {
+			updateSheet((sheet) => ({
+				...sheet,
+				data: {
+					...sheet.data,
+					[key]: newValue ? 1 : 0,
+				},
+			}))
+		}
+
+		return {
+			value,
+			setValue,
+			bind: () => ({
+				checked: value,
+				onChange: (event: { currentTarget: { checked: boolean } }) => {
+					setValue(event.currentTarget.checked)
+				},
+			}),
+		}
+	}
+
 	const sheetView = {
 		name: stringView("name"),
 		pronouns: stringView("pronouns"),
 		species: stringView("species"),
 		concept: stringView("concept"),
+		showSkills: booleanView("showSkills"),
 		experiences: Array.from({ length: 5 })
 			.map((_, experienceIndex) => `experiences:${experienceIndex}`)
 			.map((key) => ({

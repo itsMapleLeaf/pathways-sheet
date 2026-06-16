@@ -1,5 +1,5 @@
 import "./index.css"
-import { Tabs } from "@base-ui/react"
+import { Popover, Tabs } from "@base-ui/react"
 import { Icon } from "@iconify/react"
 import { type } from "arktype"
 import { useEffect, useState } from "react"
@@ -8,6 +8,7 @@ import { useAsyncState } from "./lib/useAsyncState.ts"
 import { useLocalStorage } from "./lib/useLocalStorage.ts"
 import { SheetData } from "./sheet/SheetData.ts"
 import { SheetEditor } from "./sheet/SheetEditor.tsx"
+import { createSheetView } from "./sheet/SheetView.ts"
 import { Tooltip, type TooltipProps } from "./ui/Tooltip.tsx"
 
 const SheetDataFromJsonString = type("string.json.parse").to(SheetData)
@@ -35,6 +36,21 @@ export function App() {
 			: Object.keys(sheets)[0]
 
 	const currentSheet = currentSheetId && sheets[currentSheetId]
+	const currentSheetView = currentSheet
+		? createSheetView(currentSheet, (updater) => {
+				setSheets((prev) => {
+					const sheet = prev[currentSheet.id]
+					if (!sheet) {
+						return prev
+					}
+
+					return {
+						...prev,
+						[currentSheet.id]: updater(sheet),
+					}
+				})
+			})
+		: null
 
 	function saveSheet(sheet: SheetData) {
 		console.debug("exported sheet", sheet)
@@ -156,6 +172,28 @@ export function App() {
 						onClick={loadSheet}
 						tooltipContent="Load sheet from JSON file (adds a new tab)"
 					/>
+
+					{currentSheetView && (
+						<HeaderPopoverButton
+							icon="mingcute:settings-6-fill"
+							label="Settings"
+							tooltipContent="Sheet settings"
+						>
+							<label className="flex items-center gap-2 rounded px-2 py-1.5 text-sm transition hover:bg-white/5">
+								<input
+									type="checkbox"
+									className="size-4 rounded border border-white/10 bg-white/5 accent-primary-400"
+									checked={currentSheetView.showSkills.value}
+									onChange={(event) => {
+										currentSheetView.showSkills.setValue(
+											event.currentTarget.checked,
+										)
+									}}
+								/>
+								<span>Show skills</span>
+							</label>
+						</HeaderPopoverButton>
+					)}
 				</div>
 			</div>
 
@@ -264,6 +302,41 @@ function HeaderButton({
 				<span className="sr-only">{label}</span>
 			</button>
 		</Tooltip>
+	)
+}
+
+interface HeaderPopoverButtonProps {
+	children: React.ReactNode
+	icon: string
+	label: string
+	tooltipContent: string
+	tooltipSide?: TooltipProps["side"]
+}
+
+function HeaderPopoverButton({
+	children,
+	icon,
+	label,
+	tooltipContent,
+	tooltipSide = "bottom",
+}: HeaderPopoverButtonProps) {
+	return (
+		<Popover.Root>
+			<Tooltip content={tooltipContent} side={tooltipSide}>
+				<Popover.Trigger className="flex size-8 items-center justify-center rounded transition hover:bg-stone-800">
+					<Icon icon={icon} className="size-5" />
+					<span className="sr-only">{label}</span>
+				</Popover.Trigger>
+			</Tooltip>
+
+			<Popover.Portal>
+				<Popover.Positioner sideOffset={12} align="end">
+					<Popover.Popup className="rounded border border-stone-800 bg-stone-900 p-1 shadow-black/50 shadow-md transition data-ending-style:translate-y-1 data-starting-style:translate-y-1 data-ending-style:opacity-0 data-starting-style:opacity-0">
+						<div className="flex min-w-40 flex-col gap-1">{children}</div>
+					</Popover.Popup>
+				</Popover.Positioner>
+			</Popover.Portal>
+		</Popover.Root>
 	)
 }
 
