@@ -8,7 +8,7 @@ import { useAsyncState } from "./lib/useAsyncState.ts"
 import { useLocalStorage } from "./lib/useLocalStorage.ts"
 import { SheetData } from "./sheet/SheetData.ts"
 import { SheetEditor } from "./sheet/SheetEditor.tsx"
-import { Tooltip } from "./ui/Tooltip.tsx"
+import { Tooltip, type TooltipProps } from "./ui/Tooltip.tsx"
 
 const SheetDataFromJsonString = type("string.json.parse").to(SheetData)
 
@@ -141,32 +141,21 @@ export function App() {
 								createShareLink={() => createShareLink(currentSheet)}
 							/> */}
 
-							<Tooltip content="Save current sheet as JSON file" side="bottom">
-								<button
-									type="button"
-									className="flex size-8 items-center justify-center rounded transition hover:bg-stone-800"
-									onClick={() => saveSheet(currentSheet)}
-								>
-									<Icon icon="mingcute:save-2-fill" className="size-5" />
-									<span className="sr-only">Save</span>
-								</button>
-							</Tooltip>
+							<HeaderButton
+								icon="mingcute:save-2-fill"
+								label="Save"
+								onClick={() => saveSheet(currentSheet)}
+								tooltipContent="Save current sheet as JSON file"
+							/>
 						</>
 					)}
 
-					<Tooltip
-						content="Load sheet from JSON file (adds a new tab)"
-						side="bottom"
-					>
-						<button
-							type="button"
-							className="flex size-8 items-center justify-center rounded transition hover:bg-stone-800"
-							onClick={loadSheet}
-						>
-							<Icon icon="mingcute:folder-open-fill" className="size-5" />
-							<span className="sr-only">Load</span>
-						</button>
-					</Tooltip>
+					<HeaderButton
+						icon="mingcute:folder-open-fill"
+						label="Load"
+						onClick={loadSheet}
+						tooltipContent="Load sheet from JSON file (adds a new tab)"
+					/>
 				</div>
 			</div>
 
@@ -246,6 +235,35 @@ export function App() {
 				))}
 			</Tabs.Root>
 		</div>
+	)
+}
+
+interface HeaderButtonProps {
+	icon: string
+	label: string
+	onClick: () => void
+	tooltipContent: string
+	tooltipSide?: TooltipProps["side"]
+}
+
+function HeaderButton({
+	icon,
+	label,
+	onClick,
+	tooltipContent,
+	tooltipSide = "bottom",
+}: HeaderButtonProps) {
+	return (
+		<Tooltip content={tooltipContent} side={tooltipSide}>
+			<button
+				type="button"
+				className="flex size-8 items-center justify-center rounded transition hover:bg-stone-800"
+				onClick={onClick}
+			>
+				<Icon icon={icon} className="size-5" />
+				<span className="sr-only">{label}</span>
+			</button>
+		</Tooltip>
 	)
 }
 
