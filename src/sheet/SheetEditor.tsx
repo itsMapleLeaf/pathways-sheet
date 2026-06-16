@@ -145,8 +145,24 @@ export function SheetEditor({
 							key={experienceIndex}
 							experienceView={experienceView}
 							statBlocks={visibleStatBlocks}
-							onMoveUp={experienceIndex > 0 ? () => sheetView.swapExperiences(experienceIndex - 1, experienceIndex) : undefined}
-							onMoveDown={experienceIndex < sheetView.experiences.length - 1 ? () => sheetView.swapExperiences(experienceIndex, experienceIndex + 1) : undefined}
+							onMoveUp={
+								experienceIndex > 0
+									? () =>
+											sheetView.swapExperiences(
+												experienceIndex - 1,
+												experienceIndex,
+											)
+									: undefined
+							}
+							onMoveDown={
+								experienceIndex < sheetView.experiences.length - 1
+									? () =>
+											sheetView.swapExperiences(
+												experienceIndex,
+												experienceIndex + 1,
+											)
+									: undefined
+							}
 						/>
 					))}
 				</div>
